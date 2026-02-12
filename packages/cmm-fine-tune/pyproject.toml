@@ -1,0 +1,30 @@
+[project]
+name = "cmm-fine-tune"
+version = "0.1.0"
+description = "Phi-4 LoRA fine-tuning pipeline for Critical Minerals & Materials domain knowledge"
+requires-python = ">=3.11"
+dependencies = [
+    "mlx>=0.22.0",
+    "mlx-lm>=0.21.0",
+    "pandas>=2.2.0",
+    "pydantic>=2.6.0",
+    "pyyaml>=6.0",
+    "rouge-score>=0.1.2",
+    "nltk>=3.9",
+    "scikit-learn>=1.4.0",
+    "rich>=13.7.0",
+    "jinja2>=3.1.0",
+]
+
+[project.scripts]
+cmm-prepare = "cmm_fine_tune.data.prepare:main"
+cmm-train = "cmm_fine_tune.training.train:main"
+cmm-evaluate = "cmm_fine_tune.evaluation.evaluate:main"
+cmm-chat = "cmm_fine_tune.inference.chat:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cmm_fine_tune"]

@@ -1,0 +1,184 @@
+dataset: aluminium_sp_synthetic
+source_file: All_Aluminium_synthetic_35_v2.csv
+canonical_schema_ref: schemas/canonical/cmm_asset_facility_v0_1.schema.json
+
+defaults:
+  # If all 35 are mines; otherwise adjust or infer by column.
+  facility_type: mine
+  metadata.source_system: sp_synthetic
+  metadata.source_dataset: All_Aluminium_synthetic_35_v2.csv
+  processing.design_capacity[].unit: tonne_per_year
+  processing.design_capacity[].source: sp_synthetic
+
+value_mappings:
+  status.development_stage:
+    exploration: exploration
+    pre-feasibility: prefeasibility
+    prefeasibility: prefeasibility
+    feasibility: feasibility
+    construction: construction
+    commissioning: commissioning
+    ramp-up: ramp_up
+    operating: operating
+    closed: closed
+    suspended: suspended
+    default: unknown
+  status.operating_status:
+    active: active
+    operating: active
+    closed: closed
+    idle: idle
+    care & maintenance: care_and_maintenance
+    development: development
+    exploration: exploration_only
+    default: unknown
+
+fields:
+  # Identity and source IDs
+  PROP_NAME:
+    path: name
+
+  PROP_ID:
+    path: source_ids.sp_property_id
+
+  MINESEARCH_ID:
+    path: source_ids.minesearch_id
+
+  INTIERRA_LIVE_PPTY_ID:
+    path: source_ids.intierra_live_ppty_id
+
+  MEG_PROP_ID:
+    path: source_ids.meg_prop_id
+
+  PRIMARY_COMMODITY:
+    path: primary_commodity
+
+  # Location
+  COUNTRY_NAME:
+    path: location.country
+
+  STATE_PROVINCE:
+    path: location.state_province
+
+  SNL_GLOBAL_REGION:
+    path: location.snl_global_region
+
+  LATITUDE:
+    path: location.latitude
+    transform: to_float
+
+  LONGITUDE:
+    path: location.longitude
+    transform: to_float
+
+  COORDINATE_ACCURACY:
+    path: location.coordinate_accuracy
+
+  DISTANCE_FROM:
+    path: location.distance_to_reference_km
+    transform: extract_numeric_km
+
+  LOCATION_COMMENTS:
+    path: location.location_comments
+
+  LOCALE:
+    path: location.locale
+
+  DISTRICT:
+    path: location.district
+
+  # Status and timeline
+  DEV_STAGE:
+    path: status.development_stage
+    transform: map_value
+    transform_args:
+      mapping_key: status.development_stage
+
+  ACTV_STATUS:
+    path: status.operating_status
+    transform: map_value
+    transform_args:
+      mapping_key: status.operating_status
+
+  MO_YR_SOURCE_DATE:
+    path: metadata.source_date
+    transform: to_string
+
+  # Ownership (minimal)
+  NUM_ROYALTY_OWNERS:
+    path: ownership.num_royalty_owners
+    transform: to_int
+
+  # Reserves / resources (current snapshot)
+  R_AND_R_AS_OF:
+    path: reserves_resources.as_of_date
+    transform: to_string
+
+  RESV_ORE_TONNAGE:
+    path: reserves_resources.ore_reserve_tonnage
+    transform: to_float
+
+  GRD_RESV_PCT_TONNE:
+    path: reserves_resources.ore_grade_pct
+    transform: to_float
+
+  CONTAINED_R_AND_R_PCT_TONNE:
+    path: reserves_resources.contained_metal_resources_tonnes
+    transform: to_float
+
+  # Capacity (multiple columns)
+  PRODUCTION_CAPACITY_TONNE:
+    path: processing.design_capacity
+    transform: capacity_entry
+    transform_args:
+      year_field: null
+      value_field: PRODUCTION_CAPACITY_TONNE
+      product_field: PRIMARY_COMMODITY
+
+  PRODUCTION_CAPACITY_TONNE.1:
+    path: processing.design_capacity
+    transform: capacity_entry
+    transform_args:
+      year_field: null
+      value_field: PRODUCTION_CAPACITY_TONNE.1
+      product_field: PRIMARY_COMMODITY
+
+  PRODUCTION_CAPACITY_TONNE.2:
+    path: processing.design_capacity
+    transform: capacity_entry
+    transform_args:
+      year_field: null
+      value_field: PRODUCTION_CAPACITY_TONNE.2
+      product_field: PRIMARY_COMMODITY
+
+  PRODUCTION_CAPACITY_TONNE.3:
+    path: processing.design_capacity
+    transform: capacity_entry
+    transform_args:
+      year_field: null
+      value_field: PRODUCTION_CAPACITY_TONNE.3
+      product_field: PRIMARY_COMMODITY
+
+  PRODUCTION_CAPACITY_TONNE.4:
+    path: processing.design_capacity
+    transform: capacity_entry
+    transform_args:
+      year_field: null
+      value_field: PRODUCTION_CAPACITY_TONNE.4
+      product_field: PRIMARY_COMMODITY
+
+  PRODUCTION_CAPACITY_TONNE.5:
+    path: processing.design_capacity
+    transform: capacity_entry
+    transform_args:
+      year_field: null
+      value_field: PRODUCTION_CAPACITY_TONNE.5
+      product_field: PRIMARY_COMMODITY
+
+  PRODUCTION_CAPACITY_TONNE.6:
+    path: processing.design_capacity
+    transform: capacity_entry
+    transform_args:
+      year_field: null
+      value_field: PRODUCTION_CAPACITY_TONNE.6
+      product_field: PRIMARY_COMMODITY

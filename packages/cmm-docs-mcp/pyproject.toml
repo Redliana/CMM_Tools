@@ -1,0 +1,23 @@
+[project]
+name = "cmm-docs-mcp"
+version = "0.1.0"
+description = "CMM Document Server MCP - Access 1,100+ DOE technical reports and 500+ CSV datasets"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.0.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "PyMuPDF>=1.24.0",
+    "pandas>=2.0.0",
+    "scikit-learn>=1.4.0",
+]
+
+[project.scripts]
+cmm-docs-mcp = "cmm_docs.server:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/cmm_docs"]

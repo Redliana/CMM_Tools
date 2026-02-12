@@ -1,0 +1,86 @@
+dataset: copper_refining_sp_synthetic
+source_file: copper_refining_synthetic_500.csv
+canonical_schema_ref: schemas/canonical/cmm_asset_facility_v0_1.schema.json
+
+defaults:
+  facility_type: refinery
+  metadata.source_system: sp_synthetic
+  metadata.source_dataset: copper_refining_synthetic_500.csv
+  processing.design_capacity[].unit: tonne_per_year
+  processing.design_capacity[].source: sp_synthetic
+
+value_mappings:
+  status.development_stage:
+    exploration: exploration
+    pre-feasibility: prefeasibility
+    prefeasibility: prefeasibility
+    feasibility: feasibility
+    construction: construction
+    commissioning: commissioning
+    ramp-up: ramp_up
+    operating: operating
+    closed: closed
+    suspended: suspended
+    default: unknown
+  status.operating_status:
+    active: active
+    operating: active
+    closed: closed
+    idle: idle
+    care & maintenance: care_and_maintenance
+    development: development
+    exploration: exploration_only
+    default: unknown
+
+fields:
+  PROP_NAME:
+    path: name
+
+  PROP_ID:
+    path: source_ids.sp_property_id
+
+  PRIMARY_COMMODITY:
+    path: primary_commodity
+
+  DEV_STAGE:
+    path: status.development_stage
+    transform: map_value
+    transform_args:
+      mapping_key: status.development_stage
+
+  ACTV_STATUS:
+    path: status.operating_status
+    transform: map_value
+    transform_args:
+      mapping_key: status.operating_status
+
+  COUNTRY_NAME:
+    path: location.country
+
+  LATITUDE:
+    path: location.latitude
+    transform: to_float
+
+  LONGITUDE:
+    path: location.longitude
+    transform: to_float
+
+  PROJ_START_UP_YR:
+    path: timeline.startup_year
+    transform: to_int
+
+  CONTAINED_RESV_PCT_TONNE:
+    path: reserves_resources.contained_metal_reserve_tonnes
+    transform: to_float
+
+  CONTAINED_R_AND_R_PCT_TONNE:
+    path: reserves_resources.contained_metal_resources_tonnes
+    transform: to_float
+
+  PRODUCTION_CAPACITY_TONNE:
+    path: processing.design_capacity
+    transform: capacity_entry
+    transform_args:
+      year_field: null
+      value_field: PRODUCTION_CAPACITY_TONNE
+      product_field: PRIMARY_COMMODITY

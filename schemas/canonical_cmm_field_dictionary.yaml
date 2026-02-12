@@ -1,0 +1,436 @@
+# Canonical field dictionary for CMMAssetFacility_v0_1
+
+fields:
+
+  # ---------------------------------------------------------------------------
+  # Top-level identification
+  # ---------------------------------------------------------------------------
+
+  id:
+    block: identification
+    description: Canonical internal asset identifier, unique across all datasets.
+    type: string
+    importance_modelers: 5
+    notes: >
+      Used as the stable key in KGs, RAG indices, and feature stores.
+      Often assigned during ingest rather than coming from any source.
+
+  source_ids:
+    block: identification
+    description: Container for all source-system specific IDs.
+    type: object
+    importance_modelers: 4
+    notes: >
+      Enables crosswalks between S&P, USGS, MRDS, national datasets, etc.
+      Essential for record linkage but not a numerical feature itself.
+
+  source_ids.sp_property_id:
+    block: identification
+    description: Synthetic/S&P-style property identifier.
+    type: string
+    importance_modelers: 3
+    notes: >
+      Primary ID when working with S&P-like datasets. Not globally unique
+      across other sources.
+
+  source_ids.minesearch_id:
+    block: identification
+    description: Minesearch system property ID (where available).
+    type: string
+    importance_modelers: 2
+    notes: For future integration with other proprietary or semi-open systems.
+
+  source_ids.intierra_live_ppty_id:
+    block: identification
+    description: Intierra Live property ID (legacy S&P lineage).
+    type: string
+    importance_modelers: 2
+    notes: Useful for reconciling older studies and reports.
+
+  source_ids.meg_prop_id:
+    block: identification
+    description: Metals Economics Group property ID.
+    type: string
+    importance_modelers: 2
+    notes: Similar use to Intierra IDs; used mainly for joining legacy sources.
+
+  name:
+    block: identification
+    description: Asset/facility/property name.
+    type: string
+    importance_modelers: 4
+    notes: >
+      Human-readable, often used in RAG/KG frontends and manual QC;
+      not stable enough to serve as the canonical key by itself.
+
+  facility_type:
+    block: classification
+    description: High-level type of facility (mine, refinery, smelter, etc.).
+    type: enum[mine, concentrator, smelter, refinery, chemical_plant, recycling_facility, other, unknown]
+    importance_modelers: 5
+    notes: >
+      Critical for graph construction and routing through supply-chain
+      stages. Used heavily in GNN and ABM role definitions.
+
+  primary_commodity:
+    block: classification
+    description: Primary commodity produced or targeted at the facility.
+    type: string
+    importance_modelers: 5
+    notes: >
+      Primary axis for filtering, aggregation, and commodity-specific
+      modeling (e.g., copper vs aluminium vs REEs).
+
+  # ---------------------------------------------------------------------------
+  # Location
+  # ---------------------------------------------------------------------------
+
+  location:
+    block: location
+    description: Geographic and jurisdictional information.
+    type: object
+    importance_modelers: 5
+    notes: >
+      Used for regional aggregation, geopolitical risk, and for coupling
+      to climate, land-use, and policy models.
+
+  location.country:
+    block: location
+    description: Country where the facility is located (name).
+    type: string
+    importance_modelers: 5
+    notes: >
+      Minimum jurisdiction resolution; required in v0.1.
+      Often mapped to ISO3 for modeling.
+
+  location.country_iso3:
+    block: location
+    description: ISO3 country code.
+    type: string
+    importance_modelers: 5
+    notes: >
+      Standardized representation for joins to GCAM regions, trade data,
+      and policy datasets.
+
+  location.state_province:
+    block: location
+    description: First-level administrative subdivision (state/province).
+    type: string
+    importance_modelers: 4
+    notes: >
+      Useful for subnational scenarios, permitting analysis, and linkage
+      to state-level policy or infrastructure data.
+
+  location.region:
+    block: location
+    description: Higher-level region or internal grouping.
+    type: string
+    importance_modelers: 3
+    notes: >
+      S&P or internal groupings (e.g., “Latin America”, “Asia-Pacific”);
+      helpful for coarse-grained analyses.
+
+  location.district:
+    block: location
+    description: District or local mining region.
+    type: string
+    importance_modelers: 3
+    notes: Particularly relevant for clustering deposits and assets.
+
+  location.locale:
+    block: location
+    description: Local locality name (nearest town, locality).
+    type: string
+    importance_modelers: 2
+    notes: Mostly for human interpretation and fine-grained mapping.
+
+  location.snl_global_region:
+    block: location
+    description: SNL/S&P global region label.
+    type: string
+    importance_modelers: 3
+    notes: Normalizable into the project’s own region hierarchy.
+
+  location.latitude:
+    block: location
+    description: Latitude in decimal degrees.
+    type: number
+    importance_modelers: 5
+    notes: >
+      Essential for spatial joins (climate, water stress, protected areas)
+      and for constructing geospatial features.
+
+  location.longitude:
+    block: location
+    description: Longitude in decimal degrees.
+    type: number
+    importance_modelers: 5
+    notes: Same role as latitude.
+
+  location.coordinate_accuracy:
+    block: location
+    description: Qualitative or quantitative measure of coordinate accuracy.
+    type: string
+    importance_modelers: 3
+    notes: >
+      Enables uncertainty-aware spatial analytics and model weighting based
+      on location reliability.
+
+  location.distance_to_reference_km:
+    block: location
+    description: Distance to a key reference point (e.g., town, port, railhead).
+    type: number
+    importance_modelers: 4
+    notes: >
+      Strong proxy for logistics costs and connectivity; often derived from
+      S&P fields like DISTANCE_FROM.
+
+  location.location_comments:
+    block: location
+    description: Free-text notes about location or access.
+    type: string
+    importance_modelers: 2
+    notes: Helpful for manual QA and nuanced RAG queries.
+
+  # ---------------------------------------------------------------------------
+  # Status and timeline
+  # ---------------------------------------------------------------------------
+
+  status:
+    block: status
+    description: Operational and development status summary.
+    type: object
+    importance_modelers: 5
+    notes: >
+      Key for filtering active vs pipeline supply and for scenario modeling
+      of project timing.
+
+  status.operating_status:
+    block: status
+    description: Current operational status (active, closed, etc.).
+    type: enum[active, idle, care_and_maintenance, closed, depleted, construction, development, exploration_only, unknown]
+    importance_modelers: 5
+    notes: >
+      Directly influences whether facility contributes to current capacity
+      and production; critical for baseline scenario construction.
+
+  status.development_stage:
+    block: status
+    description: Project development stage (exploration, feasibility, etc.).
+    type: enum[exploration, prefeasibility, feasibility, construction, commissioning, ramp_up, operating, suspended, closed, unknown]
+    importance_modelers: 5
+    notes: >
+      Used for pipeline analysis, time-to-production modeling, and for
+      distinguishing mature from speculative supply.
+
+  timeline:
+    block: timeline
+    description: Key years related to startup and closure.
+    type: object
+    importance_modelers: 4
+    notes: >
+      Provides chronological anchors for synthetic scenario generation,
+      production ramp-up curves, and decline trajectories.
+
+  timeline.startup_year:
+    block: timeline
+    description: Year the project started up or began commercial operations.
+    type: integer
+    importance_modelers: 4
+    notes: Often derived from PROJ_START_UP_YR in S&P-like datasets.
+
+  timeline.first_production_year:
+    block: timeline
+    description: Year of first recorded production (if distinct from startup).
+    type: integer
+    importance_modelers: 3
+    notes: Optional refinement; sometimes equal to startup_year.
+
+  timeline.closure_year:
+    block: timeline
+    description: Year of closure or projected closure, if known.
+    type: integer|null
+    importance_modelers: 3
+    notes: Useful for decommissioning scenarios and historical analyses.
+
+  # ---------------------------------------------------------------------------
+  # Reserves and resources (primary commodity focus)
+  # ---------------------------------------------------------------------------
+
+  reserves_resources:
+    block: reserves_resources
+    description: Summary of reserves and resources for the primary commodity.
+    type: object
+    importance_modelers: 5
+    notes: >
+      Core driver of potential future supply; interacts with costs, prices,
+      and development stage in modeling.
+
+  reserves_resources.as_of_date:
+    block: reserves_resources
+    description: Date at which reserve/resource numbers are reported.
+    type: date/string
+    importance_modelers: 4
+    notes: >
+      Differentiates stale R&R estimates from recent ones; important for
+      weighting and change detection.
+
+  reserves_resources.ore_reserve_tonnage:
+    block: reserves_resources
+    description: Ore tonnage classified as reserves.
+    type: number
+    importance_modelers: 5
+    notes: >
+      One of the key physical limits for mine life and capacity expansions.
+
+  reserves_resources.ore_grade_pct:
+    block: reserves_resources
+    description: Ore grade expressed as percent (for primary commodity).
+    type: number
+    importance_modelers: 5
+    notes: >
+      Critical for cost curves, energy intensity, and environmental impact.
+
+  reserves_resources.contained_metal_reserve_tonnes:
+    block: reserves_resources
+    description: Contained metal in reserves (tonnes of primary commodity).
+    type: number
+    importance_modelers: 5
+    notes: >
+      Directly used in reserves-based supply estimations and resource
+      depletion modeling.
+
+  reserves_resources.contained_metal_resources_tonnes:
+    block: reserves_resources
+    description: Contained metal in total resources (beyond reserves).
+    type: number
+    importance_modelers: 4
+    notes: >
+      Indicates upside potential and pipeline of future reserve conversion.
+
+  # ---------------------------------------------------------------------------
+  # Processing and capacity
+  # ---------------------------------------------------------------------------
+
+  processing:
+    block: processing
+    description: Basic processing characteristics and design capacity.
+    type: object
+    importance_modelers: 5
+    notes: >
+      Encodes the bridge from in situ resources to supply flows, especially
+      for midstream segments (smelting, refining).
+
+  processing.design_capacity:
+    block: processing
+    description: List of nameplate capacity entries (possibly time- or product-specific).
+    type: array[object]
+    importance_modelers: 5
+    notes: >
+      Core feature for supply-side modeling, capacity utilization, and
+      infrastructure bottlenecks.
+
+  processing.design_capacity[].year:
+    block: processing
+    description: Year associated with the capacity estimate (if available).
+    type: integer|null
+    importance_modelers: 3
+    notes: >
+      Enables capacity trajectory analyses and comparison across vintages.
+
+  processing.design_capacity[].product:
+    block: processing
+    description: Product to which this capacity applies (e.g., cathode copper).
+    type: string
+    importance_modelers: 4
+    notes: Particularly important when multi-product facilities are modeled.
+
+  processing.design_capacity[].value:
+    block: processing
+    description: Capacity magnitude.
+    type: number
+    importance_modelers: 5
+    notes: >
+      Used directly in capacity constraints for optimization and in GNN
+      node feature vectors.
+
+  processing.design_capacity[].unit:
+    block: processing
+    description: Unit of capacity (e.g., tonne_per_year).
+    type: string
+    importance_modelers: 4
+    notes: Must be standardized during ETL for comparability.
+
+  processing.design_capacity[].source:
+    block: processing
+    description: Source or method used to determine capacity.
+    type: string
+    importance_modelers: 2
+    notes: Useful for data lineage and weighting sources.
+
+  # ---------------------------------------------------------------------------
+  # Ownership (minimal v0.1)
+  # ---------------------------------------------------------------------------
+
+  ownership:
+    block: ownership
+    description: Minimal ownership-related attributes.
+    type: object
+    importance_modelers: 3
+    notes: >
+      Will likely be expanded in future versions to include owner identities,
+      stakes, and ownership history.
+
+  ownership.num_royalty_owners:
+    block: ownership
+    description: Count of royalty owners associated with the property.
+    type: integer
+    importance_modelers: 2
+    notes: >
+      Weak proxy for contractual complexity; more useful once detailed
+      owner identities are modeled.
+
+  # ---------------------------------------------------------------------------
+  # Metadata / provenance
+  # ---------------------------------------------------------------------------
+
+  metadata:
+    block: metadata
+    description: Provenance and dataset-level metadata for this record.
+    type: object
+    importance_modelers: 4
+    notes: >
+      Underpins traceability, versioning, and model auditability.
+
+  metadata.source_system:
+    block: metadata
+    description: Logical source system (e.g., sp_synthetic, usgs, mrds).
+    type: string
+    importance_modelers: 4
+    notes: >
+      Essential for stratified model evaluation and understanding biases
+      from different data providers.
+
+  metadata.source_dataset:
+    block: metadata
+    description: Input dataset name or file identifier.
+    type: string
+    importance_modelers: 3
+    notes: >
+      Helpful for debugging, reproducibility, and mapping back to raw data.
+
+  metadata.source_date:
+    block: metadata
+    description: Vintage of the source data (as reported).
+    type: string
+    importance_modelers: 3
+    notes: >
+      Distinct from as_of_date for reserves; captures dataset-wide
+      extraction or publication date.
+
+  metadata.ingest_timestamp:
+    block: metadata
+    description: Timestamp when this record was ingested into the CM2US system.
+    type: datetime
+    importance_modelers: 2
+    notes: Mostly for internal pipeline management and reproducibility.

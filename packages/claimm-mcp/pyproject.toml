@@ -1,0 +1,24 @@
+[project]
+name = "claimm-mcp"
+version = "0.1.0"
+description = "MCP server for searching NETL EDX CLAIMM (Critical Minerals) data"
+requires-python = ">=3.10"
+dependencies = [
+    "mcp[cli]>=1.0.0",
+    "httpx>=0.27.0",
+    "litellm>=1.40.0",
+    "python-dotenv>=1.0.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+]
+
+[project.scripts]
+claimm-mcp = "claimm_mcp.server:main"
+claimm-mcp-agnostic = "claimm_mcp.server_agnostic:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/claimm_mcp"]

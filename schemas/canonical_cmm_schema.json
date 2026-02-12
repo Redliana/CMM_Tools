@@ -1,0 +1,182 @@
+{
+  "$id": "https://cm2us.org/schemas/cmm_asset_facility_v0_1.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CMMAssetFacility_v0_1",
+  "description": "Minimal canonical schema for a mining or processing facility in CMM supply chains.",
+  "type": "object",
+  "required": ["name", "primary_commodity", "location"],
+  "additionalProperties": true,
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Canonical internal asset identifier (not source-specific)."
+    },
+    "source_ids": {
+      "type": "object",
+      "description": "Source-system specific identifiers.",
+      "properties": {
+        "sp_property_id": { "type": "string" },
+        "minesearch_id": { "type": "string" },
+        "intierra_live_ppty_id": { "type": "string" },
+        "meg_prop_id": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+
+    "name": {
+      "type": "string",
+      "description": "Facility or property name."
+    },
+
+    "facility_type": {
+      "type": "string",
+      "description": "High-level facility type.",
+      "enum": [
+        "mine",
+        "concentrator",
+        "smelter",
+        "refinery",
+        "chemical_plant",
+        "recycling_facility",
+        "other",
+        "unknown"
+      ],
+      "default": "unknown"
+    },
+
+    "primary_commodity": {
+      "type": "string",
+      "description": "Primary commodity produced or targeted (e.g., copper, aluminium)."
+    },
+
+    "location": {
+      "type": "object",
+      "description": "Geographic and jurisdictional information.",
+      "required": ["country"],
+      "properties": {
+        "country": { "type": "string" },
+        "country_iso3": { "type": "string" },
+        "state_province": { "type": "string" },
+        "region": { "type": "string" },
+        "district": { "type": "string" },
+        "locale": { "type": "string" },
+        "snl_global_region": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "coordinate_accuracy": { "type": "string" },
+        "distance_to_reference_km": {
+          "type": "number",
+          "description": "Distance to a key reference node (port, town, hub, etc.)."
+        },
+        "location_comments": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+
+    "status": {
+      "type": "object",
+      "description": "Operational status and development stage.",
+      "properties": {
+        "operating_status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "idle",
+            "care_and_maintenance",
+            "closed",
+            "depleted",
+            "construction",
+            "development",
+            "exploration_only",
+            "unknown"
+          ]
+        },
+        "development_stage": {
+          "type": "string",
+          "enum": [
+            "exploration",
+            "prefeasibility",
+            "feasibility",
+            "construction",
+            "commissioning",
+            "ramp_up",
+            "operating",
+            "suspended",
+            "closed",
+            "unknown"
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "timeline": {
+      "type": "object",
+      "description": "Key project years.",
+      "properties": {
+        "startup_year": { "type": "integer" },
+        "first_production_year": { "type": "integer" },
+        "closure_year": { "type": ["integer", "null"] }
+      },
+      "additionalProperties": true
+    },
+
+    "reserves_resources": {
+      "type": "object",
+      "description": "Summary of reserves and resources for the primary commodity.",
+      "properties": {
+        "as_of_date": { "type": "string", "format": "date" },
+        "ore_reserve_tonnage": { "type": "number" },
+        "ore_grade_pct": { "type": "number" },
+        "contained_metal_reserve_tonnes": { "type": "number" },
+        "contained_metal_resources_tonnes": { "type": "number" }
+      },
+      "additionalProperties": true
+    },
+
+    "processing": {
+      "type": "object",
+      "description": "Design capacity and basic production characteristics.",
+      "properties": {
+        "design_capacity": {
+          "type": "array",
+          "description": "Nameplate capacity entries (can be time- or product-specific).",
+          "items": {
+            "type": "object",
+            "required": ["value", "unit"],
+            "properties": {
+              "year": { "type": ["integer", "null"] },
+              "product": { "type": "string" },
+              "value": { "type": "number" },
+              "unit": { "type": "string" },
+              "source": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "ownership": {
+      "type": "object",
+      "description": "Simple ownership summary.",
+      "properties": {
+        "num_royalty_owners": { "type": "integer" }
+      },
+      "additionalProperties": true
+    },
+
+    "metadata": {
+      "type": "object",
+      "description": "Provenance of this record.",
+      "properties": {
+        "source_system": { "type": "string" },
+        "source_dataset": { "type": "string" },
+        "source_date": { "type": "string" },
+        "ingest_timestamp": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

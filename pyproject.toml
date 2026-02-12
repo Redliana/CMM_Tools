@@ -1,0 +1,122 @@
+[project]
+name = "cmm-tools"
+version = "0.1.0"
+description = "Critical Minerals & Materials (CMM) tools monorepo"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    { name = "CMM Team", email = "cmm@pnnl.gov" },
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "pytest-asyncio>=0.23.0",
+    "ruff>=0.8.0",
+    "mypy>=1.0.0",
+    "pre-commit>=3.0.0",
+]
+
+[tool.uv.workspace]
+members = ["packages/*"]
+
+[tool.uv.sources]
+google-scholar-api = { workspace = true }
+
+# ── Ruff (shared) ────────────────────────────────────────────────────────────
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["packages/*/src"]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "SIM",    # flake8-simplify
+    "RUF",    # ruff-specific
+]
+ignore = [
+    "E402",    # module import not at top of file
+    "E501",    # line too long (strings; ruff format handles code lines)
+    "PLC0415", # import not at top level
+    "ERA001",  # commented-out code
+    "PTH123",  # builtin-open
+    "RUF012",  # mutable-class-default
+    "B904",    # raise-without-from-inside-except
+    "B007",    # unused-loop-control-variable
+    "PLW0603", # global-statement
+    "ARG001",  # unused-function-argument
+    "ARG002",  # unused-method-argument
+    "PLR0911", # too-many-return-statements
+    "SIM117",  # multiple-with-statements
+    "F402",    # import-shadowed-by-loop-var
+    "RUF001",  # ambiguous-unicode-character-string
+    "B905",    # zip-without-explicit-strict
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*" = ["PLC0415", "ARG", "PLR"]
+"**/test_*" = ["PLC0415"]
+
+[tool.ruff.lint.isort]
+known-first-party = [
+    "bgs_mcp",
+    "claimm_mcp",
+    "uncomtrade_mcp",
+    "osti_mcp",
+    "cmm_docs",
+    "cmm_data",
+    "cmm_fine_tune",
+    "arxiv_mcp",
+    "scholar",
+    "scholar_mcp",
+    "cmm_embedding",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+# ── Mypy (shared) ────────────────────────────────────────────────────────────
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = ["tests", "docs", "examples", "scripts"]
+
+# ── Pytest ────────────────────────────────────────────────────────────────────
+[tool.pytest.ini_options]
+testpaths = ["tests", "packages"]
+python_files = ["test_*.py"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short --import-mode=importlib"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning",
+]
+
+# ── Coverage ──────────────────────────────────────────────────────────────────
+[tool.coverage.run]
+source = ["packages/*/src"]
+branch = true
+omit = ["*/tests/*", "*/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
+show_missing = true

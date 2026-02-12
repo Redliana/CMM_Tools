@@ -14,9 +14,21 @@ from cmm_fine_tune.data.qa_generator import (
 from cmm_fine_tune.models import QAPair
 
 
+def _has_data(data: dict) -> bool:
+    """Check if any section in the loaded data has actual records."""
+    return any(
+        any(len(v) > 0 for v in section.values())
+        for section in data.values()
+        if isinstance(section, dict)
+    )
+
+
 @pytest.fixture(scope="module")
 def all_data():
-    return load_all_data()
+    data = load_all_data()
+    if not _has_data(data):
+        pytest.skip("No CSV data files available — skipping integration tests")
+    return data
 
 
 @pytest.fixture(scope="module")
@@ -24,6 +36,7 @@ def all_qa_pairs(all_data):
     return generate_all_qa(all_data["trade"], all_data["salient"], all_data["world"])
 
 
+@pytest.mark.integration
 class TestTradeQA:
     def test_generates_pairs(self, all_data):
         trade = all_data["trade"]
@@ -41,6 +54,7 @@ class TestTradeQA:
         assert "trade_bilateral" in template_ids
 
 
+@pytest.mark.integration
 class TestSalientQA:
     def test_generates_pairs(self, all_data):
         salient = all_data["salient"]
@@ -56,6 +70,7 @@ class TestSalientQA:
         assert len(nir_pairs) > 0, "Expected NIR Q&A pairs"
 
 
+@pytest.mark.integration
 class TestWorldProductionQA:
     def test_generates_pairs(self, all_data):
         world = all_data["world"]
@@ -71,6 +86,7 @@ class TestWorldProductionQA:
         assert len(top_pairs) > 0, "Expected top producers Q&A pairs"
 
 
+@pytest.mark.integration
 class TestGenerateAll:
     def test_total_count(self, all_qa_pairs):
         """Should generate a substantial number of Q&A pairs."""

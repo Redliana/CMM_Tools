@@ -99,7 +99,10 @@ exclude = ["tests", "docs", "examples", "scripts"]
 testpaths = ["tests", "packages"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
-addopts = "-v --tb=short --import-mode=importlib"
+addopts = "-v --tb=short --import-mode=importlib -m 'not integration'"
+markers = [
+    "integration: tests that require external data files (deselected by default)",
+]
 filterwarnings = [
     "ignore::DeprecationWarning",
     "ignore::PendingDeprecationWarning",

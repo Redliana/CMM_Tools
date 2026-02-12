@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Paths (relative to the repo root LLM_Fine_Tuning/Exp_Design)
+# Paths — set CMM_FINETUNE_DATA_ROOT to the directory containing
+# API_Scripts/ and fine_tuning/ (formerly LLM_Fine_Tuning/Exp_Design)
 # ---------------------------------------------------------------------------
-REPO_ROOT = Path(__file__).resolve().parents[4]  # Exp_Design/
+REPO_ROOT = Path(os.getenv("CMM_FINETUNE_DATA_ROOT", ""))
 
 TRADE_DATA_DIR = REPO_ROOT / "API_Scripts" / "gold_qa_data"
 USGS_DATA_DIR = REPO_ROOT / "API_Scripts" / "usgs_mcs_data" / "cmm_extracted"

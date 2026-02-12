@@ -15,10 +15,9 @@ load_dotenv(Path(__file__).parent / ".env")
 # API Keys
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
-# Base data directory
-DATA_ROOT = Path(
-    "/Users/wash198/Documents/Projects/Science_Projects/MPII_CMM/LLM_Fine_Tuning/Claude"
-)
+# Base data directory — set CMM_DOCS_DATA_ROOT to the directory containing
+# OSTI_retrieval/, schemas/, USGS_Ore_Deposits/, USGS_Data/, LISA_Model/, etc.
+DATA_ROOT = Path(os.getenv("CMM_DOCS_DATA_ROOT", ""))
 
 # Data source directories
 OSTI_DIR = DATA_ROOT / "OSTI_retrieval"

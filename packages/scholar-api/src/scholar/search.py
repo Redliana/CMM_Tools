@@ -10,6 +10,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 from serpapi import GoogleScholarSearch
@@ -117,7 +118,7 @@ class AuthorResult:
 
     def to_dict(self) -> dict:
         """Convert to dictionary for JSON serialization."""
-        result = {
+        result: dict[str, Any] = {
             "query": self.query,
             "authors": [
                 {

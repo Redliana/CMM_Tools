@@ -41,10 +41,11 @@ class BaseLoader(ABC):
     @property
     def data_path(self) -> Path:
         """Get the path to this loader's dataset directory."""
-        return self.config.get_path(self.dataset_name)
+        path: Path = self.config.get_path(self.dataset_name)
+        return path
 
     @abstractmethod
-    def load(self, **kwargs) -> pd.DataFrame:
+    def load(self, **kwargs: Any) -> pd.DataFrame:
         """
         Load data from the dataset.
 

@@ -37,19 +37,20 @@ class NETLREECoalLoader(BaseLoader):
                 self._gdb_path = gdb_files[0]
             else:
                 raise DataNotFoundError("Geodatabase not found in NETL REE directory")
-        return self._gdb_path
+        path: Path = self._gdb_path  # type: ignore[assignment]
+        return path
 
     def list_available(self) -> list[str]:
         """List available layers in the geodatabase."""
         if self._layers is not None:
-            return self._layers
+            return list(self._layers)
 
         try:
             import fiona
 
             with fiona.open(self.gdb_path) as src:
                 self._layers = list(src)
-            return self._layers
+            return list(self._layers)
         except ImportError:
             # Without fiona, return expected layers
             return [
@@ -60,16 +61,18 @@ class NETLREECoalLoader(BaseLoader):
         except (OSError, ValueError):
             return []
 
-    def load(self, layer: str | None = None) -> pd.DataFrame:
+    def load(self, **kwargs: Any) -> pd.DataFrame:
         """
         Load data from the geodatabase.
 
         Args:
-            layer: Layer name to load. If None, loads first available layer.
+            **kwargs: Loader-specific parameters.
+                layer: Layer name to load. If None, loads first available layer.
 
         Returns:
             DataFrame with layer data (without geometry)
         """
+        layer: str | None = kwargs.get("layer")
         try:
             import geopandas as gpd  # noqa: F401
 
@@ -131,7 +134,7 @@ class NETLREECoalLoader(BaseLoader):
         # Try common layer names
         for layer_name in ["REE_Coal_Samples", "REE_Samples", "Samples"]:
             try:
-                return self.load(layer_name)
+                return self.load(layer=layer_name)
             except DataNotFoundError:
                 continue
 

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import httpx
 from pydantic import BaseModel
@@ -104,7 +104,7 @@ class BGSClient:
                 headers={"Accept": "application/json"},
             )
             response.raise_for_status()
-            return response.json()
+            return cast(dict[str, Any], response.json())
 
     def _parse_records(self, data: dict[str, Any]) -> list[MineralRecord]:
         """Parse API response into MineralRecord objects."""
@@ -206,7 +206,7 @@ class BGSClient:
                 params["country_iso3_code"] = country_iso.upper()
 
         # Fetch data
-        all_records = []
+        all_records: list[MineralRecord] = []
         offset = 0
 
         while len(all_records) < limit:
@@ -303,7 +303,7 @@ class BGSClient:
             year = max(r.year for r in records if r.year)
 
         # Filter to target year and aggregate by country
-        country_totals = {}
+        country_totals: dict[str, dict[str, Any]] = {}
 
         for record in records:
             if record.year != year:
@@ -316,7 +316,7 @@ class BGSClient:
                 country_totals[country] = {
                     "country": country,
                     "country_iso3": record.country_iso3,
-                    "quantity": 0,
+                    "quantity": 0.0,
                     "units": record.units,
                     "year": year,
                 }
@@ -325,7 +325,7 @@ class BGSClient:
         # Sort by quantity descending
         ranked = sorted(
             country_totals.values(),
-            key=lambda x: x["quantity"],
+            key=lambda x: float(x["quantity"]),
             reverse=True,
         )
 

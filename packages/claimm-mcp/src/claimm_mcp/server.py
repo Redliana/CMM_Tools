@@ -162,7 +162,7 @@ async def detect_dataset_schemas(
                 output += "\n"
 
                 # Show column types summary
-                types = {}
+                types: dict[str, int] = {}
                 for col in result.get("column_types", []):
                     t = col.get("type", "unknown")
                     types[t] = types.get(t, 0) + 1
@@ -428,9 +428,9 @@ async def ask_about_data(
     if dataset_id:
         submission = await edx.get_submission(dataset_id)
         # Use the first resource as context if available
-        resource = submission.resources[0] if submission.resources else None
-        if resource:
-            return await llm.answer_about_resource(resource, submission, question)
+        first_resource = submission.resources[0] if submission.resources else None
+        if first_resource:
+            return await llm.answer_about_resource(first_resource, submission, question)
         else:
             # Answer based on submission only
             try:

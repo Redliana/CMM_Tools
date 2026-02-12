@@ -205,7 +205,7 @@ async def list_commodities(
     else:
         commodities = await client.get_commodities()
 
-    categories = None
+    categories: dict[str, list[str]] | None = None
     if categorize:
         categories = {
             "battery": [],
@@ -443,17 +443,17 @@ async def get_time_series(
 
     # Aggregate by year if no country specified
     if not country:
-        year_totals = {}
+        year_totals: dict[int, float] = {}
         units = None
         for r in records:
             if r.year and r.quantity is not None:
                 if r.year not in year_totals:
-                    year_totals[r.year] = 0
+                    year_totals[r.year] = 0.0
                 year_totals[r.year] += r.quantity
                 units = r.units
 
         data = []
-        prev_qty = None
+        prev_qty: float | None = None
         for year in sorted(year_totals.keys()):
             qty = year_totals[year]
             yoy = None
@@ -474,16 +474,16 @@ async def get_time_series(
         units = records[0].units if records else None
 
         data = []
-        prev_qty = None
+        prev_qty_r: float | None = None
         for r in records:
             if r.year and r.quantity is not None:
                 yoy = None
-                if prev_qty and prev_qty > 0:
-                    yoy = round(((r.quantity - prev_qty) / prev_qty) * 100, 2)
+                if prev_qty_r and prev_qty_r > 0:
+                    yoy = round(((r.quantity - prev_qty_r) / prev_qty_r) * 100, 2)
                 data.append(
                     TimeSeriesPoint(year=r.year, quantity=r.quantity, yoy_change_percent=yoy)
                 )
-                prev_qty = r.quantity
+                prev_qty_r = r.quantity
 
         return TimeSeriesResponse(
             commodity=commodity,
@@ -554,7 +554,7 @@ async def get_country_profile(
     client = get_client()
 
     country_iso = None
-    country_name = country
+    country_name: str | None = country
     if len(country) <= 3:
         country_iso = country
         country_name = None
@@ -576,7 +576,7 @@ async def get_country_profile(
         year = max(available_years)
 
     # Aggregate by commodity
-    commodity_data = {}
+    commodity_data: dict[str, dict[str, Any]] = {}
     for r in records:
         if r.year != year:
             continue
@@ -585,19 +585,19 @@ async def get_country_profile(
 
         key = r.commodity
         if key not in commodity_data:
-            commodity_data[key] = {"commodity": key, "quantity": 0, "units": r.units}
+            commodity_data[key] = {"commodity": key, "quantity": 0.0, "units": r.units}
         commodity_data[key]["quantity"] += r.quantity
 
     # Sort by quantity
     commodities = sorted(
         commodity_data.values(),
-        key=lambda x: x["quantity"],
+        key=lambda x: float(x["quantity"]),
         reverse=True,
     )
 
     return CountryProfile(
         country=actual_country,
-        year=year,
+        year=year if year is not None else 0,
         statistic_type=statistic_type,
         commodities=commodities,
     )

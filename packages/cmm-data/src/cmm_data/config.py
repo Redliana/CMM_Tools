@@ -5,11 +5,12 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 from .exceptions import ConfigurationError
 
 
-def _find_data_root() -> Path:
+def _find_data_root() -> Path | None:
     """
     Find the root directory containing CMM data.
 
@@ -172,7 +173,7 @@ def configure(
     """
     global _config
 
-    config_kwargs = {}
+    config_kwargs: dict[str, Any] = {}
     if data_root is not None:
         config_kwargs["data_root"] = Path(data_root)
     if cache_enabled is not None:
@@ -183,5 +184,5 @@ def configure(
         config_kwargs["cache_ttl_seconds"] = cache_ttl_seconds
     config_kwargs.update(kwargs)
 
-    _config = CMMDataConfig(**config_kwargs)
+    _config = CMMDataConfig(**config_kwargs)  # type: ignore[arg-type]
     return _config

@@ -42,13 +42,14 @@ class ComtradeClient:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await client.get(url, params=params, headers=self._get_headers())
             response.raise_for_status()
-            return response.json()
+            result: dict[str, Any] = response.json()
+            return result
 
     async def check_status(self) -> dict[str, Any]:
         """Check API connectivity and key validity."""
         try:
             # Try a minimal query to check connectivity
-            params = {
+            params: dict[str, str | int] = {
                 "reporterCode": "842",  # USA
                 "period": "2023",
                 "partnerCode": "0",  # World
@@ -114,7 +115,7 @@ class ComtradeClient:
         Returns:
             List of TradeRecord objects
         """
-        params = {
+        params: dict[str, str | int] = {
             "reporterCode": reporter,
             "partnerCode": partner,
             "cmdCode": commodity,
@@ -181,13 +182,15 @@ class ComtradeClient:
         """Get list of available reporter countries."""
         url = f"{self.REFS_URL}/Reporters.json"
         data = await self._request(url)
-        return data.get("results", [])
+        results: list[dict[str, Any]] = data.get("results", [])
+        return results
 
     async def get_partners(self) -> list[dict[str, Any]]:
         """Get list of available partner countries."""
         url = f"{self.REFS_URL}/partnerAreas.json"
         data = await self._request(url)
-        return data.get("results", [])
+        results: list[dict[str, Any]] = data.get("results", [])
+        return results
 
     async def get_commodities(self, classification: str = "HS") -> list[dict[str, Any]]:
         """
@@ -201,4 +204,5 @@ class ComtradeClient:
         """
         url = f"{self.REFS_URL}/{classification}.json"
         data = await self._request(url)
-        return data.get("results", [])
+        results: list[dict[str, Any]] = data.get("results", [])
+        return results

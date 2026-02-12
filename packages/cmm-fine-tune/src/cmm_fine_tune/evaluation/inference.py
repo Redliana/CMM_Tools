@@ -29,7 +29,7 @@ def run_inference(
     if adapter_path and Path(adapter_path).exists():
         load_kwargs["adapter_path"] = adapter_path
         logger.info("Loading adapter from %s", adapter_path)
-    model, tokenizer = load(model_id, **load_kwargs)
+    model, tokenizer, *_rest = load(model_id, **load_kwargs)
 
     answers: list[str] = []
     for i, qa in enumerate(questions):
@@ -55,6 +55,9 @@ def _build_prompt(question: str, tokenizer) -> str:
         {"role": "user", "content": question},
     ]
     if hasattr(tokenizer, "apply_chat_template"):
-        return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+        result: str = tokenizer.apply_chat_template(
+            messages, tokenize=False, add_generation_prompt=True
+        )
+        return result
     # Fallback for tokenizers without chat template
     return f"System: {CMM_SYSTEM_PROMPT}\n\nUser: {question}\n\nAssistant:"

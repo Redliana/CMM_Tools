@@ -83,7 +83,8 @@ class EDXClient:
                 error = result.get("error", {})
                 raise Exception(f"EDX API error: {error}")
 
-            return result.get("result", {})
+            api_result: dict[str, Any] = result.get("result", {})
+            return api_result
 
     async def search_resources(
         self,

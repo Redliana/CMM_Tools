@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
@@ -44,7 +45,7 @@ class OECDSupplyChainLoader(BaseLoader):
 
         return available
 
-    def load(self, dataset: str = "export_restrictions") -> pd.DataFrame:
+    def load(self, **kwargs: Any) -> pd.DataFrame:
         """
         Load OECD dataset.
 
@@ -52,11 +53,13 @@ class OECDSupplyChainLoader(BaseLoader):
         about available files. Use get_pdf_paths() for file locations.
 
         Args:
-            dataset: Dataset name ('export_restrictions', 'iea_minerals', etc.)
+            **kwargs: Loader-specific parameters.
+                dataset: Dataset name ('export_restrictions', 'iea_minerals', etc.)
 
         Returns:
             DataFrame with file metadata
         """
+        dataset: str = kwargs.get("dataset", "export_restrictions")
         if dataset not in self.SUBDIRS:
             raise DataNotFoundError(
                 f"Unknown dataset: {dataset}. Available: {list(self.SUBDIRS.keys())}"
@@ -94,7 +97,7 @@ class OECDSupplyChainLoader(BaseLoader):
         Returns:
             list of Path objects to PDF files
         """
-        df = self.load(dataset)
+        df = self.load(dataset=dataset)
         pdf_df = df[df["extension"] == ".pdf"]
         return [Path(p) for p in pdf_df["path"]]
 
@@ -108,7 +111,7 @@ class OECDSupplyChainLoader(BaseLoader):
 
     def get_icio_documentation(self) -> list[Path]:
         """Get paths to ICIO documentation files."""
-        df = self.load("icio")
+        df = self.load(dataset="icio")
         return [Path(p) for p in df["path"]]
 
     def load_icio_tables(self, year: int | None = None) -> pd.DataFrame:
@@ -232,7 +235,7 @@ class OECDSupplyChainLoader(BaseLoader):
         file_counts = {}
         for dataset in self.list_available():
             try:
-                df = self.load(dataset)
+                df = self.load(dataset=dataset)
                 file_counts[dataset] = df["extension"].value_counts().to_dict()
             except (OSError, ValueError):
                 pass

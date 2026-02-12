@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import zipfile
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -62,18 +62,21 @@ class GAChronostratigraphicLoader(BaseLoader):
 
         return available
 
-    def load(self, surface: str = "Paleozoic_Top", format: str = "xyz") -> pd.DataFrame:
+    def load(self, **kwargs: Any) -> pd.DataFrame:
         """
         Load a surface from the chronostratigraphic model.
 
         Args:
-            surface: Surface name (e.g., 'Paleozoic_Top', 'Basement')
-            format: Data format ('xyz', 'geotiff' requires rasterio)
+            **kwargs: Loader-specific parameters.
+                surface: Surface name (e.g., 'Paleozoic_Top', 'Basement')
+                format: Data format ('xyz', 'geotiff' requires rasterio)
 
         Returns:
             DataFrame with surface data (for XYZ format)
             For GeoTIFF, returns rasterio dataset if available
         """
+        surface: str = kwargs.get("surface", "Paleozoic_Top")
+        format: str = kwargs.get("format", "xyz")
         if format == "xyz":
             return self._load_xyz_surface(surface)
         elif format == "geotiff":
@@ -202,7 +205,7 @@ class GAChronostratigraphicLoader(BaseLoader):
         if distances[min_idx] > 10000:  # 10km threshold
             return None
 
-        return df.loc[min_idx, "z"]
+        return cast(float, df.loc[min_idx, "z"])
 
     def get_model_info(self) -> dict:
         """Get information about the 3D model."""

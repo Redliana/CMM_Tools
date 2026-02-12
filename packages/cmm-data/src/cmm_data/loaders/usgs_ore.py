@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import pandas as pd
 
 from ..exceptions import DataNotFoundError
@@ -62,16 +64,18 @@ class USGSOreDepositsLoader(BaseLoader):
 
         return [f.stem for f in self.data_path.glob("*.csv")]
 
-    def load(self, table: str = "Geology") -> pd.DataFrame:
+    def load(self, **kwargs: Any) -> pd.DataFrame:
         """
         Load a table from the ore deposits database.
 
         Args:
-            table: Table name (e.g., 'Geology', 'BV_Ag_Mo', 'DataDictionary')
+            **kwargs: Loader-specific parameters.
+                table: Table name (e.g., 'Geology', 'BV_Ag_Mo', 'DataDictionary')
 
         Returns:
             pandas.DataFrame with table data
         """
+        table: str = kwargs.get("table", "Geology")
         cache_key = self._cache_key("table", table)
         cached = self._get_cached(cache_key)
         if cached is not None:
@@ -102,7 +106,7 @@ class USGSOreDepositsLoader(BaseLoader):
         Returns:
             DataFrame with field metadata
         """
-        return self.load("DataDictionary")
+        return self.load(table="DataDictionary")
 
     def load_geology(self) -> pd.DataFrame:
         """
@@ -111,7 +115,7 @@ class USGSOreDepositsLoader(BaseLoader):
         Returns:
             DataFrame with deposit locations and geological context
         """
-        return self.load("Geology")
+        return self.load(table="Geology")
 
     def load_geochemistry(self, elements: list[str] | None = None) -> pd.DataFrame:
         """
@@ -129,8 +133,8 @@ class USGSOreDepositsLoader(BaseLoader):
             return cached
 
         # Load both BV tables
-        df_ag_mo = self.load("BV_Ag_Mo")
-        df_na_zr = self.load("BV_Na_Zr")
+        df_ag_mo = self.load(table="BV_Ag_Mo")
+        df_na_zr = self.load(table="BV_Na_Zr")
 
         # Merge on common key (likely SAMPLE_ID or similar)
         common_cols = list(set(df_ag_mo.columns) & set(df_na_zr.columns))

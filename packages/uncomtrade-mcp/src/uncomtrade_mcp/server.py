@@ -371,11 +371,13 @@ async def get_country_trade_profile(
     import asyncio
 
     client = get_client()
-    profile = {
+    imports_data: dict[str, float] = {}
+    exports_data: dict[str, float] = {}
+    profile: dict[str, object] = {
         "country_code": country,
         "year": year,
-        "imports": {},
-        "exports": {},
+        "imports": imports_data,
+        "exports": exports_data,
     }
 
     if commodity_type == "critical_minerals":
@@ -399,15 +401,15 @@ async def get_country_trade_profile(
 
                 mineral_name = MINERAL_NAMES.get(mineral, mineral)
                 if import_total > 0:
-                    profile["imports"][mineral_name] = import_total
+                    imports_data[mineral_name] = import_total
                 if export_total > 0:
-                    profile["exports"][mineral_name] = export_total
+                    exports_data[mineral_name] = export_total
             except (httpx.HTTPError, OSError, ValueError):
                 continue
 
-    profile["total_imports"] = sum(profile["imports"].values())
-    profile["total_exports"] = sum(profile["exports"].values())
-    profile["trade_balance"] = profile["total_exports"] - profile["total_imports"]
+    profile["total_imports"] = sum(imports_data.values())
+    profile["total_exports"] = sum(exports_data.values())
+    profile["trade_balance"] = sum(exports_data.values()) - sum(imports_data.values())
 
     return profile
 

@@ -287,12 +287,12 @@ async def get_time_series(
 
     # If no country specified, aggregate by year
     if not country:
-        year_totals = {}
+        year_totals: dict[int, float] = {}
         units = None
         for r in records:
             if r.year and r.quantity is not None:
                 if r.year not in year_totals:
-                    year_totals[r.year] = 0
+                    year_totals[r.year] = 0.0
                 year_totals[r.year] += r.quantity
                 units = r.units
 
@@ -323,16 +323,16 @@ async def get_time_series(
         output += "| Year | Quantity | YoY Change |\n"
         output += "|------|----------|------------|\n"
 
-        prev_qty = None
+        prev_qty_r: float | None = None
         for r in records:
             if r.year and r.quantity is not None:
-                if prev_qty and prev_qty > 0:
-                    change = ((r.quantity - prev_qty) / prev_qty) * 100
+                if prev_qty_r and prev_qty_r > 0:
+                    change = ((r.quantity - prev_qty_r) / prev_qty_r) * 100
                     change_str = f"{change:+.1f}%"
                 else:
                     change_str = "-"
                 output += f"| {r.year} | {r.quantity:,.1f} | {change_str} |\n"
-                prev_qty = r.quantity
+                prev_qty_r = r.quantity
 
     return output
 
@@ -431,7 +431,7 @@ async def get_country_profile(
     client = get_client()
 
     country_iso = None
-    country_name = country
+    country_name: str | None = country
     if len(country) <= 3:
         country_iso = country
         country_name = None
@@ -454,7 +454,7 @@ async def get_country_profile(
         year = max(available_years)
 
     # Filter to target year and aggregate by commodity
-    commodity_data = {}
+    commodity_data: dict[str, dict[str, float | str | None]] = {}
     for r in records:
         if r.year != year:
             continue
@@ -463,8 +463,8 @@ async def get_country_profile(
 
         key = r.commodity
         if key not in commodity_data:
-            commodity_data[key] = {"quantity": 0, "units": r.units}
-        commodity_data[key]["quantity"] += r.quantity
+            commodity_data[key] = {"quantity": 0.0, "units": r.units}
+        commodity_data[key]["quantity"] = float(commodity_data[key]["quantity"] or 0) + r.quantity
 
     output = f"**{actual_country} - {statistic_type} Profile ({year})**\n\n"
     output += f"Commodities: {len(commodity_data)}\n\n"
@@ -475,7 +475,7 @@ async def get_country_profile(
     # Sort by quantity descending
     sorted_commodities = sorted(
         commodity_data.items(),
-        key=lambda x: x[1]["quantity"],
+        key=lambda x: float(x[1]["quantity"] or 0),
         reverse=True,
     )
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 import pandas as pd
 
@@ -156,17 +157,20 @@ class USGSCommodityLoader(BaseLoader):
         """Get full commodity name from code."""
         return COMMODITY_NAMES.get(code, code.title())
 
-    def load(self, commodity: str | None = None, data_type: str = "world") -> pd.DataFrame:
+    def load(self, **kwargs: Any) -> pd.DataFrame:
         """
         Load USGS commodity data.
 
         Args:
-            commodity: Commodity code (e.g., 'lithi'). If None, loads all commodities.
-            data_type: 'world' for world production or 'salient' for salient statistics
+            **kwargs: Loader-specific parameters.
+                commodity: Commodity code (e.g., 'lithi'). If None, loads all commodities.
+                data_type: 'world' for world production or 'salient' for salient statistics
 
         Returns:
             pandas.DataFrame with commodity data
         """
+        commodity: str | None = kwargs.get("commodity")
+        data_type: str = kwargs.get("data_type", "world")
         if commodity:
             if data_type == "world":
                 return self.load_world_production(commodity)

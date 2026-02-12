@@ -57,7 +57,8 @@ def _flow_name(code: str) -> str:
 
 def _commodity_name(key: str) -> str:
     cfg = COMMODITY_CONFIG.get(key, {})
-    return cfg.get("display_name", key.replace("_", " ").title())
+    name: str = cfg.get("display_name", key.replace("_", " ").title())
+    return name
 
 
 # ===========================================================================
@@ -269,9 +270,10 @@ def _generate_trade_qa(commodity_key: str, records: list[TradeFlowRecord]) -> li
         if len(top_partners) < 2:
             continue
 
+        assert total_val is not None
         top_str = ", ".join(
-            f"{_country_name(p.partner_code)} ({_fmt_usd(p.primary_value)}, "
-            f"{(p.primary_value / total_val) * 100:.1f}%)"
+            f"{_country_name(p.partner_code)} ({_fmt_usd(p.primary_value or 0.0)}, "
+            f"{((p.primary_value or 0.0) / total_val) * 100:.1f}%)"
             for p in top_partners
         )
 
@@ -296,7 +298,7 @@ def _generate_trade_qa(commodity_key: str, records: list[TradeFlowRecord]) -> li
                         {
                             "partner": _country_name(p.partner_code),
                             "value_usd": p.primary_value,
-                            "share_pct": (p.primary_value / total_val) * 100,
+                            "share_pct": ((p.primary_value or 0.0) / total_val) * 100,
                         }
                         for p in top_partners
                     ],
@@ -368,9 +370,10 @@ def _generate_salient_qa(commodity_key: str, records: list[SalientRecord]) -> li
                     continue  # skip withheld
                 pval_f = 0.0
             else:
-                pval_f = float(pval) if isinstance(pval, (int, float)) else None
-                if pval_f is None:
+                pval_f_maybe = float(pval) if isinstance(pval, (int, float)) else None
+                if pval_f_maybe is None:
                     continue
+                pval_f = pval_f_maybe
 
             # Extract unit hint from column name
             unit = "metric tons"
@@ -417,9 +420,10 @@ def _generate_salient_qa(commodity_key: str, records: list[SalientRecord]) -> li
         for pfield, pval in price_fields.items():
             if pval is None or (isinstance(pval, str) and pval in _WITHHELD):
                 continue
-            pval_f = float(pval) if isinstance(pval, (int, float)) else None
-            if pval_f is None:
+            pval_f_maybe = float(pval) if isinstance(pval, (int, float)) else None
+            if pval_f_maybe is None:
                 continue
+            pval_f = pval_f_maybe
 
             # Extract price unit
             unit = "dollars"
@@ -556,18 +560,20 @@ def _generate_salient_qa(commodity_key: str, records: list[SalientRecord]) -> li
     # S6: Production-consumption gap (L2)
     for r in records:
         # Find any consumption field and any production field
-        consump_fields = {
-            k: v
+        consump_fields: dict[str, float] = {
+            k: float(v)
             for k, v in r.fields.items()
             if "consump" in k.lower() and isinstance(v, (int, float))
         }
-        prod_fields = {
-            k: v for k, v in r.fields.items() if "USprod" in k and isinstance(v, (int, float))
+        prod_fields_f: dict[str, float] = {
+            k: float(v)
+            for k, v in r.fields.items()
+            if "USprod" in k and isinstance(v, (int, float))
         }
-        if not consump_fields or not prod_fields:
+        if not consump_fields or not prod_fields_f:
             continue
 
-        total_prod = sum(float(v) for v in prod_fields.values())
+        total_prod = sum(prod_fields_f.values())
         # Use first consumption field
         consump_key = sorted(consump_fields.keys())[0]
         consump_val = float(consump_fields[consump_key])
@@ -725,6 +731,7 @@ def _generate_world_production_qa(
         for wr in world_recs:
             year_clean = wr.production_year2_label.replace(" (est.)", "")
             q = f"What was total world {name} production in {year_clean}?"
+            assert wr.production_year2 is not None
             a = (
                 f"Total world {name} production in {year_clean} was "
                 f"{_fmt_num(wr.production_year2)} metric tons, "
@@ -751,7 +758,8 @@ def _generate_world_production_qa(
         if world_total and world_total > 0:
             year_clean = world_recs[0].production_year2_label.replace(" (est.)", "")
             for cr in valid:
-                share = (cr.production_year2 / world_total) * 100
+                cr_prod = cr.production_year2 or 0.0
+                share = (cr_prod / world_total) * 100
                 q = (
                     f"What share of global {name} production did {cr.country} "
                     f"account for in {year_clean}?"
@@ -759,7 +767,7 @@ def _generate_world_production_qa(
                 a = (
                     f"{cr.country} accounted for approximately {share:.1f}% of global "
                     f"{name} production in {year_clean}, producing "
-                    f"{_fmt_num(cr.production_year2)} metric tons out of a world total "
+                    f"{_fmt_num(cr_prod)} metric tons out of a world total "
                     f"of {_fmt_num(world_total)} metric tons ({source})."
                 )
                 pairs.append(
@@ -787,7 +795,7 @@ def _generate_world_production_qa(
             top3 = sorted_producers[:3]
             year_clean = top3[0].production_year2_label.replace(" (est.)", "")
             top_str = ", ".join(
-                f"{p.country} ({_fmt_num(p.production_year2)} metric tons)" for p in top3
+                f"{p.country} ({_fmt_num(p.production_year2 or 0.0)} metric tons)" for p in top3
             )
             q = f"Which countries were the top producers of {name} in {year_clean}?"
             a = f"The top three producers of {name} in {year_clean} were: {top_str} ({source})."
@@ -841,7 +849,7 @@ def _generate_world_production_qa(
 
         # W8: Production concentration / HHI (L3)
         if world_total and world_total > 0 and len(valid) >= 3:
-            shares = [(r.country, (r.production_year2 / world_total) * 100) for r in valid]
+            shares = [(r.country, ((r.production_year2 or 0.0) / world_total) * 100) for r in valid]
             hhi = sum(s**2 for _, s in shares)
             top3_share = sum(s for _, s in sorted(shares, key=lambda x: -x[1])[:3])
             year_clean = world_recs[0].production_year2_label.replace(" (est.)", "")

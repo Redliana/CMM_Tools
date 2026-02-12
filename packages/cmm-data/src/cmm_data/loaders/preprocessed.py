@@ -32,16 +32,18 @@ class PreprocessedCorpusLoader(BaseLoader):
 
         return [f.name for f in self.data_path.glob("*.jsonl")]
 
-    def load(self, corpus_file: str = "unified_corpus.jsonl") -> pd.DataFrame:
+    def load(self, **kwargs: Any) -> pd.DataFrame:
         """
         Load corpus as DataFrame.
 
         Args:
-            corpus_file: Name of JSONL file to load
+            **kwargs: Loader-specific parameters.
+                corpus_file: Name of JSONL file to load
 
         Returns:
             DataFrame with document records
         """
+        corpus_file: str = kwargs.get("corpus_file", "unified_corpus.jsonl")
         cache_key = self._cache_key("corpus", corpus_file)
         cached = self._get_cached(cache_key)
         if cached is not None:
@@ -72,7 +74,7 @@ class PreprocessedCorpusLoader(BaseLoader):
 
     def iter_documents(
         self, corpus_file: str = "unified_corpus.jsonl", batch_size: int | None = None
-    ) -> Generator[dict[str, Any], None, None]:
+    ) -> Generator[dict[str, Any] | list[Any], None, None]:
         """
         Iterate over documents in the corpus.
 
@@ -115,7 +117,7 @@ class PreprocessedCorpusLoader(BaseLoader):
         Returns:
             Dictionary with corpus statistics
         """
-        df = self.load(corpus_file)
+        df = self.load(corpus_file=corpus_file)
 
         stats = {
             "total_documents": len(df),

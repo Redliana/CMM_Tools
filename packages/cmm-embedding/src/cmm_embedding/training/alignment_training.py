@@ -176,9 +176,9 @@ class InfoNCELoss(nn.Module):
             "acc_b_to_a": acc_b.item(),
             "pos_similarity": pos_sim.item(),
             "neg_similarity": neg_sim.item(),
-            "temperature": self.temperature.item()
+            "temperature": float(self.temperature.item())
             if isinstance(self.temperature, nn.Parameter)
-            else self.temperature,
+            else float(self.temperature),
         }
 
         return loss, metrics
@@ -254,7 +254,7 @@ class EarlyStopping:
         self.min_delta = min_delta
         self.mode = mode
         self.counter = 0
-        self.best_value = None
+        self.best_value: float | None = None
         self.should_stop = False
 
     def __call__(self, value: float) -> bool:
@@ -323,7 +323,8 @@ class CheckpointManager:
 
     def load(self, path: str) -> dict[str, Any]:
         """Load a checkpoint."""
-        return torch.load(path, map_location="cpu")
+        checkpoint: dict[str, Any] = torch.load(path, map_location="cpu")
+        return checkpoint
 
     def get_best_checkpoint(self) -> str | None:
         """Get path to best checkpoint."""
@@ -350,7 +351,7 @@ class MetricTracker:
         values = self.metrics.get(key, [])
         if not values:
             return 0.0
-        return np.mean(values[-window:])
+        return float(np.mean(values[-window:]))
 
     def get_all_averages(self, window: int = 100) -> dict[str, float]:
         """Get moving averages of all metrics."""
@@ -490,7 +491,8 @@ class CrossModalAlignmentTrainer:
                 confidence_weights=None,
             )
 
-        return metrics
+        result: dict[str, float] = metrics
+        return result
 
     def train(
         self,
@@ -646,9 +648,9 @@ class CrossModalAlignmentTrainer:
             all_metrics.append(metrics)
 
         # Average metrics
-        avg_metrics = {}
+        avg_metrics: dict[str, float] = {}
         for key in all_metrics[0]:
-            avg_metrics[key] = np.mean([m[key] for m in all_metrics])
+            avg_metrics[key] = float(np.mean([m[key] for m in all_metrics]))
 
         return avg_metrics
 

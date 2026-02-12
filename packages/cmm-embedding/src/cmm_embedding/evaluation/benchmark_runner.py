@@ -311,7 +311,7 @@ class CrossScaleEvaluator:
         relevant_ids = set(item.relevant_target_ids)
 
         # Compute metrics at each K
-        metrics = {
+        metrics: dict[str, Any] = {
             "item_id": item.item_id,
             "difficulty": item.difficulty.value,
             "source_scale": item.source_scale.value,
@@ -359,7 +359,7 @@ class CrossModalEvaluator:
         retrieved_ids = [r[0] for r in results]
         relevant_ids = set(item.relevant_target_ids)
 
-        metrics = {
+        metrics: dict[str, Any] = {
             "item_id": item.item_id,
             "difficulty": item.difficulty.value,
             "source_modality": item.source_modality.value,
@@ -428,7 +428,7 @@ class SupplyChainEvaluator:
     def evaluate_item(
         self,
         item: SupplyChainTraversalItem,
-        traverse_fn: Callable[[str, str, str], list[str]],
+        traverse_fn: Callable[[str, str, str | None], list[str]],
     ) -> dict[str, Any]:
         """
         Evaluate a single supply chain traversal item.
@@ -452,9 +452,8 @@ class SupplyChainEvaluator:
             predicted_path, ground_truth["primary_path"]
         )
 
-        endpoint_acc = self.metrics.endpoint_accuracy(
-            predicted_path, item.start_entity, item.end_entity
-        )
+        end_entity = item.end_entity or ""
+        endpoint_acc = self.metrics.endpoint_accuracy(predicted_path, item.start_entity, end_entity)
 
         metrics = {
             "item_id": item.item_id,
@@ -635,7 +634,7 @@ class BenchmarkRunner:
     def __init__(
         self,
         embedding_model: Any,
-        config: EvaluationConfig = None,
+        config: EvaluationConfig | None = None,
     ):
         """
         Initialize benchmark runner.
@@ -829,7 +828,7 @@ class BenchmarkRunner:
         if not per_item_metrics:
             return {}
 
-        aggregate = {}
+        aggregate: dict[str, float] = {}
         numeric_keys = [
             k for k in per_item_metrics[0] if isinstance(per_item_metrics[0][k], (int, float))
         ]
@@ -837,7 +836,7 @@ class BenchmarkRunner:
         for key in numeric_keys:
             values = [m[key] for m in per_item_metrics if key in m]
             if values:
-                aggregate[key] = np.mean(values)
+                aggregate[key] = float(np.mean(values))
 
         return aggregate
 
@@ -857,18 +856,20 @@ class BenchmarkRunner:
         key_metrics = ["mrr", "f1", "path_accuracy", "current_timestamp_correct"]
 
         for metric in key_metrics:
-            values = [r.get(metric) for r in per_item_results if metric in r]
+            values: list[float] = [
+                float(r[metric]) for r in per_item_results if metric in r and r[metric] is not None
+            ]
             if not values:
                 continue
 
             # Bootstrap
-            bootstrap_means = []
+            bootstrap_means: list[float] = []
             for _ in range(self.config.bootstrap_samples):
                 sample = np.random.choice(values, size=len(values), replace=True)
-                bootstrap_means.append(np.mean(sample))
+                bootstrap_means.append(float(np.mean(sample)))
 
-            lower = np.percentile(bootstrap_means, 100 * alpha / 2)
-            upper = np.percentile(bootstrap_means, 100 * (1 - alpha / 2))
+            lower = float(np.percentile(bootstrap_means, 100 * alpha / 2))
+            upper = float(np.percentile(bootstrap_means, 100 * (1 - alpha / 2)))
 
             intervals[metric] = (lower, upper)
 

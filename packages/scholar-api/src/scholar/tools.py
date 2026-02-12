@@ -111,7 +111,10 @@ Search tips:
 ]
 
 # Map tool names to functions
-_TOOL_FUNCTIONS: dict[str, Callable] = {tool["name"]: tool["function"] for tool in TOOL_DEFINITIONS}
+_TOOL_FUNCTIONS: dict[str, Callable[..., Any]] = {
+    str(tool["name"]): tool["function"]  # type: ignore[misc]
+    for tool in TOOL_DEFINITIONS
+}
 
 
 def get_tool_schemas() -> list[dict]:
@@ -184,7 +187,8 @@ def execute_tool(tool_name: str, arguments: dict[str, Any]) -> dict:
 
     func = _TOOL_FUNCTIONS[tool_name]
     result = func(**arguments)
-    return result.to_dict()
+    output: dict[Any, Any] = result.to_dict()
+    return output
 
 
 def execute_tool_json(tool_name: str, arguments: dict[str, Any]) -> str:

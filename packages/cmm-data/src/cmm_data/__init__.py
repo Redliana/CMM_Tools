@@ -88,7 +88,7 @@ def load_ore_deposits(table: str = "all"):
     from .loaders.usgs_ore import USGSOreDepositsLoader
 
     loader = USGSOreDepositsLoader()
-    return loader.load(table)
+    return loader.load(table=table)
 
 
 def search_documents(query: str, **kwargs):

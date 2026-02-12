@@ -192,7 +192,8 @@ class MindatLoader(BaseLoader):
 
         if file_path.exists():
             with open(file_path, encoding="utf-8") as f:
-                return json.load(f)
+                data: list[dict] = json.load(f)
+                return data
         return None
 
     def list_available(self) -> list[str]:
@@ -340,7 +341,7 @@ class MindatLoader(BaseLoader):
         if ima_only:
             retriever.ima(True)
 
-        results = retriever.get_dict()
+        results: list[dict[str, Any]] = retriever.get_dict()
 
         if save and results:
             identifier = f"elements_{'_'.join(sorted(elements))}"
@@ -366,7 +367,7 @@ class MindatLoader(BaseLoader):
         from openmindat import GeomaterialIdRetriever
 
         retriever = GeomaterialIdRetriever()
-        result = retriever.id(mineral_id).get_dict()
+        result: dict[str, Any] = retriever.id(mineral_id).get_dict()
 
         if save and result:
             self._save_data(result, "geomaterials", f"id_{mineral_id}")
@@ -389,7 +390,7 @@ class MindatLoader(BaseLoader):
         from openmindat import GeomaterialSearchRetriever
 
         retriever = GeomaterialSearchRetriever()
-        results = retriever.geomaterials_search(name).get_dict()
+        results: list[dict[str, Any]] = retriever.geomaterials_search(name).get_dict()
 
         if save and results:
             safe_name = name.lower().replace(" ", "_")
@@ -415,6 +416,7 @@ class MindatLoader(BaseLoader):
         api_response = retriever.get_dict()
 
         # Extract results from API response wrapper
+        minerals: list[dict[str, Any]]
         if isinstance(api_response, dict) and "results" in api_response:
             minerals = api_response["results"]
         elif isinstance(api_response, list):
@@ -474,7 +476,7 @@ class MindatLoader(BaseLoader):
         from openmindat import LocalitiesRetriever
 
         retriever = LocalitiesRetriever()
-        results = retriever.mineral_id(mineral_id).get_dict()
+        results: list[dict[str, Any]] = retriever.mineral_id(mineral_id).get_dict()
 
         if save and results:
             self._save_data(results, "localities", f"mineral_{mineral_id}")
@@ -497,7 +499,7 @@ class MindatLoader(BaseLoader):
         from openmindat import LocalitiesRetriever
 
         retriever = LocalitiesRetriever()
-        results = retriever.country(country).get_dict()
+        results: list[dict[str, Any]] = retriever.country(country).get_dict()
 
         if save and results:
             safe_country = country.lower().replace(" ", "_")
@@ -507,7 +509,7 @@ class MindatLoader(BaseLoader):
 
     def fetch_critical_minerals_data(
         self, elements: list[str] | None = None, ima_only: bool = True, save: bool = True
-    ) -> dict[str, list[dict[str, Any]]]:
+    ) -> dict[str, list[dict[str, Any]] | dict[str, str]]:
         """
         Fetch mineral data for all or specified critical elements.
 
@@ -522,7 +524,7 @@ class MindatLoader(BaseLoader):
         if elements is None:
             elements = list(CRITICAL_ELEMENTS.keys())
 
-        results = {}
+        results: dict[str, list[dict[str, Any]] | dict[str, str]] = {}
         for elem in elements:
             try:
                 minerals = self.fetch_minerals_by_element(elem, ima_only=ima_only, save=save)

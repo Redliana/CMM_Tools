@@ -11,7 +11,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 from cmm_fine_tune.training.config import load_config
 

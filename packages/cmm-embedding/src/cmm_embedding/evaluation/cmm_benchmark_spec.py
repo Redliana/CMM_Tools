@@ -278,22 +278,22 @@ class BenchmarkSuite:
 
     def get_all_items(self) -> list[BenchmarkItem]:
         """Get all benchmark items across categories."""
-        return (
-            self.cross_scale_items
-            + self.cross_modal_items
-            + self.entity_resolution_items
-            + self.supply_chain_items
-            + self.temporal_items
-        )
+        items: list[BenchmarkItem] = []
+        items.extend(self.cross_scale_items)
+        items.extend(self.cross_modal_items)
+        items.extend(self.entity_resolution_items)
+        items.extend(self.supply_chain_items)
+        items.extend(self.temporal_items)
+        return items
 
     def get_items_by_category(self, category: BenchmarkCategory) -> list[BenchmarkItem]:
         """Get items for a specific category."""
-        mapping = {
-            BenchmarkCategory.CROSS_SCALE_RETRIEVAL: self.cross_scale_items,
-            BenchmarkCategory.CROSS_MODAL_ALIGNMENT: self.cross_modal_items,
-            BenchmarkCategory.ENTITY_RESOLUTION: self.entity_resolution_items,
-            BenchmarkCategory.SUPPLY_CHAIN_TRAVERSAL: self.supply_chain_items,
-            BenchmarkCategory.TEMPORAL_CONSISTENCY: self.temporal_items,
+        mapping: dict[BenchmarkCategory, list[BenchmarkItem]] = {
+            BenchmarkCategory.CROSS_SCALE_RETRIEVAL: list(self.cross_scale_items),
+            BenchmarkCategory.CROSS_MODAL_ALIGNMENT: list(self.cross_modal_items),
+            BenchmarkCategory.ENTITY_RESOLUTION: list(self.entity_resolution_items),
+            BenchmarkCategory.SUPPLY_CHAIN_TRAVERSAL: list(self.supply_chain_items),
+            BenchmarkCategory.TEMPORAL_CONSISTENCY: list(self.temporal_items),
         }
         return mapping.get(category, [])
 
@@ -305,8 +305,8 @@ class BenchmarkSuite:
         """Get benchmark statistics."""
         all_items = self.get_all_items()
 
-        category_counts = {}
-        difficulty_counts = {}
+        category_counts: dict[str, int] = {}
+        difficulty_counts: dict[str, int] = {}
 
         for item in all_items:
             cat = item.category.value
@@ -381,6 +381,7 @@ class CrossScaleBenchmarkGenerator:
         items.append(
             CrossScaleRetrievalItem(
                 item_id="cs_001",
+                category=BenchmarkCategory.CROSS_SCALE_RETRIEVAL,
                 difficulty=Difficulty.HARD,
                 description="Link LiCoO2 DFT calculation to cobalt export controls",
                 source_scale=ScaleLevel.ATOMISTIC,
@@ -413,6 +414,7 @@ class CrossScaleBenchmarkGenerator:
         items.append(
             CrossScaleRetrievalItem(
                 item_id="cs_002",
+                category=BenchmarkCategory.CROSS_SCALE_RETRIEVAL,
                 difficulty=Difficulty.EXPERT,
                 description="Link NdFeB magnetic properties to defense procurement policy",
                 source_scale=ScaleLevel.ATOMISTIC,
@@ -451,6 +453,7 @@ class CrossScaleBenchmarkGenerator:
         items.append(
             CrossScaleRetrievalItem(
                 item_id="cs_003",
+                category=BenchmarkCategory.CROSS_SCALE_RETRIEVAL,
                 difficulty=Difficulty.HARD,
                 description="Link GaN semiconductor properties to CHIPS Act provisions",
                 source_scale=ScaleLevel.ATOMISTIC,
@@ -496,6 +499,7 @@ class CrossScaleBenchmarkGenerator:
         items.append(
             CrossScaleRetrievalItem(
                 item_id="cs_004",
+                category=BenchmarkCategory.CROSS_SCALE_RETRIEVAL,
                 difficulty=Difficulty.MEDIUM,
                 description="Link lithium extraction chemistry to Chile-China trade",
                 source_scale=ScaleLevel.MATERIAL,
@@ -545,6 +549,7 @@ class CrossModalBenchmarkGenerator:
         items.append(
             CrossModalAlignmentItem(
                 item_id="cm_001",
+                category=BenchmarkCategory.CROSS_MODAL_ALIGNMENT,
                 difficulty=Difficulty.MEDIUM,
                 description="Match cobaltite XRD pattern to geological survey text",
                 source_modality=ModalityType.SPECTRUM_XRD,
@@ -570,6 +575,7 @@ class CrossModalBenchmarkGenerator:
         items.append(
             CrossModalAlignmentItem(
                 item_id="cm_002",
+                category=BenchmarkCategory.CROSS_MODAL_ALIGNMENT,
                 difficulty=Difficulty.HARD,
                 description="Match coltan XRF fingerprint to sourcing documentation",
                 source_modality=ModalityType.SPECTRUM_XRF,
@@ -605,6 +611,7 @@ class CrossModalBenchmarkGenerator:
         items.append(
             CrossModalAlignmentItem(
                 item_id="cm_003",
+                category=BenchmarkCategory.CROSS_MODAL_ALIGNMENT,
                 difficulty=Difficulty.MEDIUM,
                 description="Match spodumene crystal structure to mining text",
                 source_modality=ModalityType.CRYSTAL_STRUCTURE,
@@ -649,6 +656,7 @@ class EntityResolutionBenchmarkGenerator:
         items.append(
             EntityResolutionItem(
                 item_id="er_001",
+                category=BenchmarkCategory.ENTITY_RESOLUTION,
                 difficulty=Difficulty.MEDIUM,
                 description="Resolve Tenke Fungurume Mine name variations",
                 canonical_entity="Tenke Fungurume Mine",
@@ -685,6 +693,7 @@ class EntityResolutionBenchmarkGenerator:
         items.append(
             EntityResolutionItem(
                 item_id="er_002",
+                category=BenchmarkCategory.ENTITY_RESOLUTION,
                 difficulty=Difficulty.EASY,
                 description="Resolve Escondida Mine name variations",
                 canonical_entity="Escondida Mine",
@@ -721,6 +730,7 @@ class EntityResolutionBenchmarkGenerator:
         items.append(
             EntityResolutionItem(
                 item_id="er_003",
+                category=BenchmarkCategory.ENTITY_RESOLUTION,
                 difficulty=Difficulty.HARD,
                 description="Resolve CMOC Group name variations and subsidiaries",
                 canonical_entity="CMOC Group Limited",
@@ -755,6 +765,7 @@ class EntityResolutionBenchmarkGenerator:
         items.append(
             EntityResolutionItem(
                 item_id="er_004",
+                category=BenchmarkCategory.ENTITY_RESOLUTION,
                 difficulty=Difficulty.MEDIUM,
                 description="Resolve Glencore name variations",
                 canonical_entity="Glencore plc",
@@ -793,6 +804,7 @@ class EntityResolutionBenchmarkGenerator:
         items.append(
             EntityResolutionItem(
                 item_id="er_005",
+                category=BenchmarkCategory.ENTITY_RESOLUTION,
                 difficulty=Difficulty.MEDIUM,
                 description="Resolve rare earth element naming",
                 canonical_entity="Neodymium",
@@ -839,6 +851,7 @@ class SupplyChainBenchmarkGenerator:
         items.append(
             SupplyChainTraversalItem(
                 item_id="sc_001",
+                category=BenchmarkCategory.SUPPLY_CHAIN_TRAVERSAL,
                 difficulty=Difficulty.MEDIUM,
                 description="Trace cobalt from DRC mine to US EV battery",
                 query_text="Trace the supply chain for cobalt from Tenke Fungurume mine to Tesla vehicles",
@@ -879,6 +892,7 @@ class SupplyChainBenchmarkGenerator:
         items.append(
             SupplyChainTraversalItem(
                 item_id="sc_002",
+                category=BenchmarkCategory.SUPPLY_CHAIN_TRAVERSAL,
                 difficulty=Difficulty.HARD,
                 description="Trace rare earth elements to F-35 magnets",
                 query_text="Identify the rare earth supply chain for F-35 permanent magnets",
@@ -909,6 +923,7 @@ class SupplyChainBenchmarkGenerator:
         items.append(
             SupplyChainTraversalItem(
                 item_id="sc_003",
+                category=BenchmarkCategory.SUPPLY_CHAIN_TRAVERSAL,
                 difficulty=Difficulty.EASY,
                 description="Trace lithium from Australian mine to battery",
                 query_text="How does lithium from Greenbushes reach battery production?",
@@ -952,6 +967,7 @@ class TemporalBenchmarkGenerator:
         items.append(
             TemporalConsistencyItem(
                 item_id="tc_001",
+                category=BenchmarkCategory.TEMPORAL_CONSISTENCY,
                 difficulty=Difficulty.HARD,
                 description="Track Russian aluminum sanctions over time",
                 query_text="What are the US sanctions on Russian aluminum imports?",
@@ -988,6 +1004,7 @@ class TemporalBenchmarkGenerator:
         items.append(
             TemporalConsistencyItem(
                 item_id="tc_002",
+                category=BenchmarkCategory.TEMPORAL_CONSISTENCY,
                 difficulty=Difficulty.MEDIUM,
                 description="Track China gallium export controls",
                 query_text="What are China's export restrictions on gallium?",

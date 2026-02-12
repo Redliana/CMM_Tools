@@ -52,7 +52,7 @@ def main() -> None:
     load_kwargs: dict = {}
     if args.adapter and Path(args.adapter).exists():
         load_kwargs["adapter_path"] = args.adapter
-    model, tokenizer = load(args.model, **load_kwargs)
+    model, tokenizer, *_rest = load(args.model, **load_kwargs)
     console.print("[green]Model loaded![/green]\n")
 
     conversation: list[dict[str, str]] = [{"role": "system", "content": CMM_SYSTEM_PROMPT}]

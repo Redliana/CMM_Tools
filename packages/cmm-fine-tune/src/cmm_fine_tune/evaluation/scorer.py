@@ -118,7 +118,7 @@ def _element_present(element: str, text: str) -> bool:
 
 def _compute_rouge_l(reference: str, generated: str) -> float:
     scores = _rouge.score(reference, generated)
-    return scores["rougeL"].fmeasure
+    return float(scores["rougeL"].fmeasure)
 
 
 def _rouge_to_rubric(rouge_l: float) -> float:

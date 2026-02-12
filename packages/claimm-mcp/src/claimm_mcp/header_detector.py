@@ -150,7 +150,7 @@ class HeaderDetector:
         """Auto-detect CSV delimiter."""
         delimiters = [",", "\t", ";", "|"]
         counts = {d: line.count(d) for d in delimiters}
-        return max(counts, key=counts.get) if max(counts.values()) > 0 else ","
+        return max(counts, key=lambda d: counts[d]) if max(counts.values()) > 0 else ","
 
     def _detect_column_types(
         self,

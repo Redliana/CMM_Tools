@@ -157,7 +157,7 @@ def search_all_datasets(query: str, datasets: list[str] | None = None) -> pd.Dat
 
     if "usgs_commodity" in datasets:
         try:
-            loader = USGSCommodityLoader()
+            USGSCommodityLoader()  # Validate loader availability
             # Search commodity names
             for code, name in COMMODITY_NAMES.items():
                 if query.lower() in name.lower() or query.lower() in code.lower():
@@ -175,8 +175,8 @@ def search_all_datasets(query: str, datasets: list[str] | None = None) -> pd.Dat
 
     if "osti" in datasets:
         try:
-            loader = OSTIDocumentsLoader()
-            docs = loader.search_documents(query, limit=20)
+            osti_loader = OSTIDocumentsLoader()
+            docs = osti_loader.search_documents(query, limit=20)
             for _, row in docs.iterrows():
                 results.append(
                     {
@@ -192,8 +192,8 @@ def search_all_datasets(query: str, datasets: list[str] | None = None) -> pd.Dat
 
     if "preprocessed" in datasets:
         try:
-            loader = PreprocessedCorpusLoader()
-            docs = loader.search(query, limit=20)
+            preprocessed_loader = PreprocessedCorpusLoader()
+            docs = preprocessed_loader.search(query, limit=20)
             for _, row in docs.iterrows():
                 results.append(
                     {

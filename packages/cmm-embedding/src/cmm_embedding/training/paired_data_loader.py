@@ -26,6 +26,7 @@ import json
 import logging
 import random
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -64,11 +65,13 @@ class ContrastiveBatch:
     # Modality A data
     modality_a_types: list[str]
     modality_a_contents: list[Any]
-    modality_a_tensors: torch.Tensor | None = None  # Preprocessed tensors
 
     # Modality B data
     modality_b_types: list[str]
     modality_b_contents: list[Any]
+
+    # Optional tensors and metadata (all with defaults)
+    modality_a_tensors: torch.Tensor | None = None  # Preprocessed tensors
     modality_b_tensors: torch.Tensor | None = None
 
     # Labels for contrastive learning (positive pairs are on diagonal)
@@ -184,7 +187,7 @@ class CMMPairedDataset(Dataset):
     def __len__(self) -> int:
         return len(self.pairs)
 
-    def __getitem__(self, idx: int) -> PairedExample:
+    def __getitem__(self, idx: int) -> PairedExample | dict[str, Any]:
         pair = self.pairs[idx]
 
         if self.augment:
@@ -207,7 +210,7 @@ class CMMPairedDataset(Dataset):
         if not text:
             return text
 
-        augmentations = [
+        augmentations: list[Callable[[str], str]] = [
             self._random_word_dropout,
             self._random_word_swap,
             self._sentence_shuffle,
@@ -250,7 +253,7 @@ class CMMPairedDataset(Dataset):
 
     def get_modality_distribution(self) -> dict[str, int]:
         """Get distribution of modality pairs."""
-        dist = defaultdict(int)
+        dist: dict[str, int] = defaultdict(int)
         for pair in self.pairs:
             key = f"{pair.modality_a_type}_{pair.modality_b_type}"
             dist[key] += 1
@@ -329,13 +332,13 @@ class HardNegativeDataset(CMMPairedDataset):
             candidates.update(same_modality)
 
         # Sample hard negatives
-        candidates = list(candidates)
-        if len(candidates) > self.num_hard_negatives:
-            candidates = random.sample(candidates, self.num_hard_negatives)
+        candidate_list = list(candidates)
+        if len(candidate_list) > self.num_hard_negatives:
+            candidate_list = random.sample(candidate_list, self.num_hard_negatives)
 
-        return [self.pairs[i] for i in candidates]
+        return [self.pairs[i] for i in candidate_list]
 
-    def __getitem__(self, idx: int) -> dict[str, Any]:
+    def __getitem__(self, idx: int) -> PairedExample | dict[str, Any]:
         """Return pair with hard negatives."""
         pair = super().__getitem__(idx)
         hard_negatives = self.get_hard_negatives(idx)
@@ -437,9 +440,9 @@ class ConfidenceWeightedSampler(Sampler):
         weights = confidences ** (1.0 / self.temperature)
 
         # Normalize to sum to 1
-        weights = weights / weights.sum()
+        normalized: np.ndarray = weights / weights.sum()
 
-        return weights
+        return normalized
 
     def __iter__(self):
         indices = np.random.choice(

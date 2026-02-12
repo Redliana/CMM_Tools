@@ -25,7 +25,7 @@ import hashlib
 import json
 import logging
 from abc import ABC, abstractmethod
-from collections.abc import Iterator
+from collections.abc import AsyncGenerator
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -176,9 +176,9 @@ class TrainingCorpus:
 
     def get_statistics(self) -> dict[str, Any]:
         """Compute corpus statistics."""
-        modality_counts = {}
-        method_counts = {}
-        confidence_scores = []
+        modality_counts: dict[str, int] = {}
+        method_counts: dict[str, int] = {}
+        confidence_scores: list[float] = []
 
         for pair in self.pairs:
             # Count modalities
@@ -204,10 +204,10 @@ class TrainingCorpus:
 
     def save(self, path: str):
         """Save corpus to JSONL file."""
-        path = Path(path)
-        path.parent.mkdir(parents=True, exist_ok=True)
+        output_path = Path(path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(path, "w") as f:
+        with open(output_path, "w") as f:
             # Write metadata as first line
             f.write(
                 json.dumps(
@@ -226,7 +226,7 @@ class TrainingCorpus:
             for pair in self.pairs:
                 f.write(json.dumps(pair.to_dict()) + "\n")
 
-        logger.info(f"Saved {len(self.pairs)} pairs to {path}")
+        logger.info(f"Saved {len(self.pairs)} pairs to {output_path}")
 
     @classmethod
     def load(cls, path: str) -> TrainingCorpus:
@@ -280,9 +280,10 @@ class DataSourceConnector(ABC):
     """Abstract base class for data source connectors."""
 
     @abstractmethod
-    async def fetch_items(self, limit: int | None = None) -> Iterator[ModalityData]:
+    async def fetch_items(self, limit: int | None = None) -> AsyncGenerator[ModalityData, None]:
         """Fetch items from the data source."""
-        pass
+        raise NotImplementedError
+        yield  # Make this an async generator for mypy
 
     @abstractmethod
     def get_source_name(self) -> str:
@@ -300,13 +301,16 @@ class MaterialsProjectConnector(DataSourceConnector):
     def get_source_name(self) -> str:
         return "materials_project"
 
-    async def fetch_items(self, limit: int = 1000) -> Iterator[ModalityData]:
+    async def fetch_items(self, limit: int | None = 1000) -> AsyncGenerator[ModalityData, None]:
         """
         Fetch crystal structures and computed properties from Materials Project.
 
         Returns ModalityData for both crystal structures and associated text descriptions.
         """
         import httpx
+
+        if limit is None:
+            limit = 1000
 
         # CMM-relevant elements
         cmm_elements = [
@@ -357,10 +361,10 @@ class MaterialsProjectConnector(DataSourceConnector):
             headers = {"X-API-KEY": self.api_key}
 
             for element in cmm_elements[:5]:  # Limit for demo
-                params = {
+                params: dict[str, str] = {
                     "elements": element,
                     "fields": "material_id,formula_pretty,structure,band_gap,formation_energy_per_atom",
-                    "limit": limit // len(cmm_elements),
+                    "limit": str(limit // len(cmm_elements)),
                 }
 
                 try:
@@ -458,7 +462,7 @@ class USGSConnector(DataSourceConnector):
     def get_source_name(self) -> str:
         return "usgs"
 
-    async def fetch_items(self, limit: int | None = None) -> Iterator[ModalityData]:
+    async def fetch_items(self, limit: int | None = None) -> AsyncGenerator[ModalityData, None]:
         """
         Fetch USGS mineral commodity summaries and reports.
 
@@ -522,9 +526,12 @@ class FederalRegisterConnector(DataSourceConnector):
     def get_source_name(self) -> str:
         return "federal_register"
 
-    async def fetch_items(self, limit: int = 100) -> Iterator[ModalityData]:
+    async def fetch_items(self, limit: int | None = 100) -> AsyncGenerator[ModalityData, None]:
         """Fetch CMM-related policy documents from Federal Register."""
         import httpx
+
+        if limit is None:
+            limit = 100
 
         # CMM-related search terms
         search_terms = [
@@ -540,9 +547,9 @@ class FederalRegisterConnector(DataSourceConnector):
         async with httpx.AsyncClient() as client:
             for term in search_terms:
                 try:
-                    params = {
+                    params: dict[str, str] = {
                         "conditions[term]": term,
-                        "per_page": min(limit // len(search_terms), 100),
+                        "per_page": str(min(limit // len(search_terms), 100)),
                         "order": "relevance",
                     }
 
@@ -582,7 +589,7 @@ class SpectrumDatabaseConnector(DataSourceConnector):
     def get_source_name(self) -> str:
         return "spectrum_database"
 
-    async def fetch_items(self, limit: int | None = None) -> Iterator[ModalityData]:
+    async def fetch_items(self, limit: int | None = None) -> AsyncGenerator[ModalityData, None]:
         """
         Fetch spectral data from local database.
 
@@ -669,9 +676,10 @@ class PairingStrategy(ABC):
         self,
         items_a: list[ModalityData],
         items_b: list[ModalityData],
-    ) -> Iterator[CrossModalPair]:
+    ) -> AsyncGenerator[CrossModalPair, None]:
         """Generate cross-modal pairs from two lists of items."""
-        pass
+        raise NotImplementedError
+        yield  # Make this an async generator for mypy
 
     @abstractmethod
     def get_method(self) -> PairingMethod:
@@ -698,7 +706,7 @@ class EntityCooccurrenceStrategy(PairingStrategy):
     def get_method(self) -> PairingMethod:
         return PairingMethod.ENTITY_COOCCURRENCE
 
-    def _extract_entities(self, item: ModalityData) -> set:
+    def _extract_entities(self, item: ModalityData) -> set[str]:
         """Extract CMM entities mentioned in the item."""
         if isinstance(item.content, str):
             text = item.content.lower()
@@ -713,7 +721,7 @@ class EntityCooccurrenceStrategy(PairingStrategy):
         self,
         items_a: list[ModalityData],
         items_b: list[ModalityData],
-    ) -> Iterator[CrossModalPair]:
+    ) -> AsyncGenerator[CrossModalPair, None]:
         """Generate pairs based on entity co-occurrence."""
 
         # Pre-compute entities for all items
@@ -857,7 +865,7 @@ If there is no meaningful CMM-related relationship, set has_relationship to fals
         self,
         items_a: list[ModalityData],
         items_b: list[ModalityData],
-    ) -> Iterator[CrossModalPair]:
+    ) -> AsyncGenerator[CrossModalPair, None]:
         """Generate pairs using LLM to validate relationships."""
 
         pair_count = 0
@@ -903,7 +911,7 @@ class MetadataMatchStrategy(PairingStrategy):
         self,
         items_a: list[ModalityData],
         items_b: list[ModalityData],
-    ) -> Iterator[CrossModalPair]:
+    ) -> AsyncGenerator[CrossModalPair, None]:
         """Generate pairs based on metadata field matches."""
 
         pair_count = 0

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import cast
 
 import httpx
 from mcp.server.fastmcp import FastMCP
@@ -96,7 +97,7 @@ async def get_series_metadata(series_id: str) -> dict:
     meta = await client.get_series_metadata(series_id)
     if meta is None:
         return {"error": f"Series not found: {series_id}"}
-    return meta.model_dump()
+    return cast(dict, meta.model_dump())
 
 
 # =============================================================================

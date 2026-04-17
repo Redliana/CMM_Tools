@@ -103,13 +103,18 @@ class WorldBankClient:
             try:
                 country_meta = item.get("country") or {}
                 indicator_meta = item.get("indicator") or {}
+                raw_date = item.get("date")
+                try:
+                    year = int(raw_date) if raw_date is not None else 0
+                except (TypeError, ValueError):
+                    year = 0
                 records.append(
                     IndicatorObservation(
                         country_code=item.get("countryiso3code") or country_meta.get("id", ""),
                         country_name=country_meta.get("value"),
                         indicator_code=indicator_meta.get("id", indicator),
                         indicator_name=indicator_meta.get("value"),
-                        year=int(item.get("date")) if item.get("date") else 0,
+                        year=year,
                         value=item.get("value"),
                         unit=item.get("unit") or None,
                     )

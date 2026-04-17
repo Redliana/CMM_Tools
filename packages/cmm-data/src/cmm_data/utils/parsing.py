@@ -29,7 +29,7 @@ def parse_numeric_value(value: Any) -> float | None:
         float or None if value cannot be parsed
     """
     if value is None or pd.isna(value):
-        return np.nan
+        return float("nan")
 
     if isinstance(value, (int, float)):
         return float(value)
@@ -39,7 +39,7 @@ def parse_numeric_value(value: Any) -> float | None:
 
     # Handle special codes
     if s.upper() in ("W", "XX", "--", "—", "NA", "N/A", "N.A.", ""):
-        return np.nan
+        return float("nan")
 
     # Handle greater/less than
     if s.startswith(">") or s.startswith("<"):
@@ -62,7 +62,7 @@ def parse_numeric_value(value: Any) -> float | None:
     try:
         return float(s)
     except ValueError:
-        return np.nan
+        return float("nan")
 
 
 def parse_range(value: Any) -> tuple[float | None, float | None]:

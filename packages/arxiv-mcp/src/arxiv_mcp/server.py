@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import os
 import xml.etree.ElementTree as ET
-from typing import Any
+from typing import Any, cast
 
 import httpx
 from mcp.server.fastmcp import FastMCP
@@ -55,7 +55,7 @@ async def make_arxiv_request(url: str) -> str | None:
             logger.info(f"Making request to ArXiv API: {url}")
             response = await client.get(url, headers=headers, timeout=30.0)
             response.raise_for_status()
-            return response.text
+            return cast(str, response.text)
         except httpx.HTTPError as e:
             logger.error(f"HTTP error occurred: {e}")
             return None

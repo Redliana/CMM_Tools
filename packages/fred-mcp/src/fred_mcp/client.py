@@ -7,7 +7,7 @@ Authentication: FRED_API_KEY env var (register at https://fred.stlouisfed.org/do
 from __future__ import annotations
 
 import os
-from typing import Any
+from typing import Any, cast
 
 import httpx
 from dotenv import load_dotenv
@@ -172,7 +172,8 @@ class FredClient:
     async def list_categories(self, category_id: int = 0) -> list[dict[str, Any]]:
         """List children of a FRED category (0 = root)."""
         data = await self._request("category/children", params={"category_id": category_id})
-        return data.get("categories", [])
+        categories = data.get("categories", [])
+        return cast(list[dict[str, Any]], categories)
 
     async def list_category_series(
         self, category_id: int, limit: int = 100
@@ -182,4 +183,5 @@ class FredClient:
             "category/series",
             params={"category_id": category_id, "limit": min(limit, 1000)},
         )
-        return data.get("seriess", [])
+        seriess = data.get("seriess", [])
+        return cast(list[dict[str, Any]], seriess)

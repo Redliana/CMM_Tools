@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from typing import Any, cast
 
 import pandas as pd
 
@@ -36,7 +37,7 @@ class OSTIDocumentsLoader(BaseLoader):
 
         return sorted(items)
 
-    def load(self, collection: str | None = None) -> pd.DataFrame:
+    def load(self, **kwargs: Any) -> pd.DataFrame:
         """
         Load OSTI document metadata.
 
@@ -46,6 +47,7 @@ class OSTIDocumentsLoader(BaseLoader):
         Returns:
             DataFrame with document metadata
         """
+        collection = cast(str | None, kwargs.get("collection"))
         cache_key = self._cache_key("docs", collection)
         cached = self._get_cached(cache_key)
         if cached is not None:
@@ -144,7 +146,8 @@ class OSTIDocumentsLoader(BaseLoader):
         if "osti_id" in df.columns:
             match = df[df["osti_id"].astype(str) == str(doc_id)]
             if not match.empty and "full_text" in match.columns:
-                return match.iloc[0]["full_text"]
+                value = match.iloc[0]["full_text"]
+                return value if isinstance(value, str) else None
 
         return None
 

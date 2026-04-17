@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import yaml  # type: ignore[import-untyped]
 from pydantic import BaseModel, Field
@@ -59,7 +59,7 @@ class TrainingConfig(BaseModel):
 
     def to_mlx_config_dict(self) -> dict[str, Any]:
         """Export as a flat dict suitable for mlx_lm.lora --config."""
-        d = self.model_dump()
+        d = cast(dict[str, Any], self.model_dump())
         # Flatten lora_parameters
         lp = d.pop("lora_parameters")
         d["lora_parameters"] = lp

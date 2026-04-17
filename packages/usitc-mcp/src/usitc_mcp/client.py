@@ -298,9 +298,7 @@ class USITCClient:
                     # are positioned before the numeric data columns. Map by
                     # columnInfo index: its ``columnIndex`` field points into
                     # ``rowEntries``.
-                    label_cells = [
-                        e.get("value") for e in entries[: len(entries) - len(col_info)]
-                    ]
+                    label_cells = [e.get("value") for e in entries[: len(entries) - len(col_info)]]
                     hts_code = label_cells[0] if label_cells else ""
                     country_name = label_cells[1] if len(label_cells) > 1 else None
                     for ci in col_info:

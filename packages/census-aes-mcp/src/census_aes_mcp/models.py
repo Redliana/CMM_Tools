@@ -21,7 +21,9 @@ class ExportRecord(BaseModel):
     month: int = Field(description="Calendar month (1-12)")
     hs_code: str = Field(description="HS commodity code (2/4/6/10-digit)")
     hs_description: str | None = Field(default=None, description="HS description")
-    country_code: str | None = Field(default=None, description="Destination country Schedule C code")
+    country_code: str | None = Field(
+        default=None, description="Destination country Schedule C code"
+    )
     country_name: str | None = Field(default=None, description="Destination country name")
     value_usd: float | None = Field(default=None, description="Free-alongside-ship (FAS) value USD")
     quantity_1: float | None = Field(default=None, description="First quantity measure")
@@ -39,12 +41,8 @@ class ImportRecord(BaseModel):
     hs_description: str | None = Field(default=None, description="HS description")
     country_code: str | None = Field(default=None, description="Source country Schedule C code")
     country_name: str | None = Field(default=None, description="Source country name")
-    value_usd: float | None = Field(
-        default=None, description="General imports customs value USD"
-    )
-    value_cif_usd: float | None = Field(
-        default=None, description="CIF value USD where available"
-    )
+    value_usd: float | None = Field(default=None, description="General imports customs value USD")
+    value_cif_usd: float | None = Field(default=None, description="CIF value USD where available")
     quantity_1: float | None = Field(default=None, description="First quantity measure")
     quantity_1_unit: str | None = Field(default=None, description="First quantity unit")
 

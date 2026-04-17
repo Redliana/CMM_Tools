@@ -34,9 +34,7 @@ class WorldBankClient:
         """WDI is publicly accessible; always returns True."""
         return True
 
-    async def _request(
-        self, endpoint: str, params: dict[str, Any] | None = None
-    ) -> list[Any]:
+    async def _request(self, endpoint: str, params: dict[str, Any] | None = None) -> list[Any]:
         """GET against the WDI API. Responses are a two-element list: [meta, data]."""
         params = dict(params or {})
         params.setdefault("format", "json")

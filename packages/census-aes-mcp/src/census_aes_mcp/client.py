@@ -77,9 +77,7 @@ class CensusClient:
                 "https://api.census.gov/data/key_signup.html and export CENSUS_API_KEY."
             )
 
-    async def _get(
-        self, endpoint: str, params: dict[str, Any] | None = None
-    ) -> list[list[Any]]:
+    async def _get(self, endpoint: str, params: dict[str, Any] | None = None) -> list[list[Any]]:
         """GET against Census API; returns raw array-of-arrays."""
         self._require_key()
         query = dict(params or {})

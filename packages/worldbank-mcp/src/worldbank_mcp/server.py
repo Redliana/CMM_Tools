@@ -57,9 +57,7 @@ async def list_cmm_indicators() -> dict:
     """
     return {
         "count": len(CMM_WDI_INDICATORS),
-        "indicators": [
-            {"code": code, "name": name} for code, name in CMM_WDI_INDICATORS.items()
-        ],
+        "indicators": [{"code": code, "name": name} for code, name in CMM_WDI_INDICATORS.items()],
         "usage": "Use get_indicator(country='USA', indicator='NY.GDP.MKTP.CD', date='2000:2023')",
     }
 
@@ -69,9 +67,7 @@ async def list_cmm_key_economies() -> dict:
     """List ISO3 codes for key economies in critical-minerals supply chains."""
     return {
         "count": len(CMM_KEY_ECONOMIES),
-        "economies": [
-            {"iso3": iso3, "name": name} for iso3, name in CMM_KEY_ECONOMIES.items()
-        ],
+        "economies": [{"iso3": iso3, "name": name} for iso3, name in CMM_KEY_ECONOMIES.items()],
     }
 
 
@@ -205,7 +201,7 @@ async def compare_countries(
         date: Year or range.
 
     Returns:
-        Markdown-formatted pivot table (countries × years).
+        Markdown-formatted pivot table (countries by years).
     """
     client = get_client()
     records = await client.get_indicator_observations(

@@ -45,46 +45,46 @@ class HTSReference(BaseModel):
 # uncomtrade-mcp HS codes but at US-HTS precision.
 CMM_HTS_CODES: dict[str, list[str]] = {
     "lithium": [
-        "2530.90.00",   # Other mineral substances
-        "2825.20.00",   # Lithium oxide and hydroxide
-        "2836.91.00",   # Lithium carbonates
-        "8507.60.00",   # Lithium-ion batteries
+        "2530.90.00",  # Other mineral substances
+        "2825.20.00",  # Lithium oxide and hydroxide
+        "2836.91.00",  # Lithium carbonates
+        "8507.60.00",  # Lithium-ion batteries
     ],
     "cobalt": [
-        "2605.00.00",   # Cobalt ores and concentrates
-        "2822.00.00",   # Cobalt oxides and hydroxides
-        "8105.20.30",   # Cobalt, unwrought; powders
-        "8105.90.00",   # Cobalt articles
+        "2605.00.00",  # Cobalt ores and concentrates
+        "2822.00.00",  # Cobalt oxides and hydroxides
+        "8105.20.30",  # Cobalt, unwrought; powders
+        "8105.90.00",  # Cobalt articles
     ],
     "rare_earth": [
-        "2805.30.00",   # Rare-earth metals
-        "2846.10.00",   # Cerium compounds
-        "2846.90.00",   # Other rare-earth compounds
+        "2805.30.00",  # Rare-earth metals
+        "2846.10.00",  # Cerium compounds
+        "2846.90.00",  # Other rare-earth compounds
     ],
     "graphite": [
-        "2504.10.00",   # Natural graphite, powder/flakes
-        "2504.90.00",   # Natural graphite, other
-        "3801.10.00",   # Artificial graphite
+        "2504.10.00",  # Natural graphite, powder/flakes
+        "2504.90.00",  # Natural graphite, other
+        "3801.10.00",  # Artificial graphite
     ],
     "nickel": [
-        "2604.00.00",   # Nickel ores and concentrates
-        "7501.10.00",   # Nickel mattes
-        "7502.10.00",   # Unwrought nickel, not alloyed
-        "2811.22.00",   # Nickel oxides
+        "2604.00.00",  # Nickel ores and concentrates
+        "7501.10.00",  # Nickel mattes
+        "7502.10.00",  # Unwrought nickel, not alloyed
+        "2811.22.00",  # Nickel oxides
     ],
     "manganese": [
-        "2602.00.00",   # Manganese ores and concentrates
-        "8111.00.30",   # Manganese, unwrought
+        "2602.00.00",  # Manganese ores and concentrates
+        "8111.00.30",  # Manganese, unwrought
     ],
     "gallium": [
-        "8112.92.00",   # Gallium, unwrought
+        "8112.92.00",  # Gallium, unwrought
     ],
     "germanium": [
-        "8112.92.06",   # Germanium, unwrought (US-specific)
+        "8112.92.06",  # Germanium, unwrought (US-specific)
     ],
     "copper": [
-        "7402.00.00",   # Unrefined copper; copper anodes
-        "7403.11.00",   # Refined copper, cathodes
+        "7402.00.00",  # Unrefined copper; copper anodes
+        "7403.11.00",  # Refined copper, cathodes
     ],
 }
 

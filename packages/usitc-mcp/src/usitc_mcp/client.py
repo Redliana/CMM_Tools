@@ -162,13 +162,14 @@ class USITCClient:
         Mirrors the JSON shape returned by ``/savedQuery/getAllSystemSavedQueries``
         (which is the only validated-working template).
         """
-        # Commodity aggregation: "Aggregate Commodities" returns a single
-        # grand-total per HTS-chapter; "Break out Commodities" returns one row
-        # per distinct HTS code.
-        commodities_agg = "Break out Commodities" if hts_codes else "Aggregate Commodities"
-        commodities_select = "entered" if hts_codes else "all"
-        countries_agg = "Break out countries" if country_codes else "Aggregate countries"
-        countries_select = "entered" if country_codes else "all"
+        # Commodity and country filtering are validated against the
+        # /savedQuery/getAllSystemSavedQueries payloads. The API expects
+        # list-based selection semantics, not "entered", and the aggregation
+        # labels are case-sensitive.
+        commodities_agg = "Aggregate Commodities"
+        commodities_select = "list" if hts_codes else "all"
+        countries_agg = "Aggregate countries"
+        countries_select = "list" if country_codes else "all"
 
         # Granularity is inferred from the longest HTS code supplied. The API
         # accepts "2"|"4"|"6"|"8"|"10".
@@ -176,6 +177,14 @@ class USITCClient:
         if hts_codes:
             max_len = max(len(c.replace(".", "")) for c in hts_codes)
             granularity = str(max(2, min(10, (max_len // 2) * 2)))
+        normalized_hts = [c.replace(".", "") for c in (hts_codes or [])]
+        commodities_expanded = [
+            {"name": code, "value": code, "hasChildren": None} for code in normalized_hts
+        ]
+        commodities_manual = ", ".join(normalized_hts) if normalized_hts else None
+        countries_expanded = [
+            {"name": code, "value": code, "hasChildren": None} for code in (country_codes or [])
+        ]
 
         return {
             "savedQueryName": "",
@@ -198,13 +207,13 @@ class USITCClient:
                     "yearsTimeline": "Annual",
                 },
                 "commodities": {
-                    "commodities": [c.replace(".", "") for c in (hts_codes or [])],
-                    "commoditiesExpanded": [],
-                    "commoditiesManual": None,
+                    "commodities": normalized_hts,
+                    "commoditiesExpanded": commodities_expanded,
+                    "commoditiesManual": commodities_manual,
                     "commodityGroups": {"systemGroups": [], "userGroups": []},
                     "granularity": granularity,
                     "searchGranularity": granularity,
-                    "groupGranularity": granularity,
+                    "groupGranularity": "2",
                     "aggregation": commodities_agg,
                     "codeDisplayFormat": "NO",
                     "commoditySelectType": commodities_select,
@@ -212,7 +221,7 @@ class USITCClient:
                 },
                 "countries": {
                     "countries": country_codes or [],
-                    "countriesExpanded": [],
+                    "countriesExpanded": countries_expanded,
                     "countryGroups": {"systemGroups": [], "userGroups": []},
                     "aggregation": countries_agg,
                     "countriesSelectType": countries_select,

@@ -26,10 +26,10 @@ import json
 import logging
 import random
 from collections import defaultdict
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import torch
@@ -547,7 +547,8 @@ class ContrastiveCollator:
                 truncation=True,
                 return_tensors="pt",
             )
-            return encoded["input_ids"]
+            encoded_map = cast(Mapping[str, torch.Tensor], encoded)
+            return encoded_map["input_ids"]
 
         # Spectrum modalities
         elif modality in ["spectrum_xrd", "spectrum_xrf", "spectrum_raman"]:
@@ -606,7 +607,7 @@ def create_contrastive_dataloader(
         DataLoader configured for contrastive learning
     """
     # Select sampler
-    sampler = None
+    sampler: Sampler[int] | None = None
     if sampler_type == "balanced":
         sampler = ModalityBalancedSampler(dataset, batch_size, shuffle=shuffle)
         shuffle = False  # Sampler handles shuffling

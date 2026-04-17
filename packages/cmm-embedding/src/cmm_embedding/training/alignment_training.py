@@ -19,7 +19,7 @@ import logging
 from collections import defaultdict
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 import torch
@@ -27,7 +27,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.cuda.amp import GradScaler, autocast
 from torch.optim import AdamW
-from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
+from torch.optim.lr_scheduler import CosineAnnealingLR, LRScheduler, OneCycleLR
 from torch.utils.data import DataLoader
 
 try:
@@ -412,7 +412,7 @@ class CrossModalAlignmentTrainer:
         )
 
         # Setup scheduler
-        self.scheduler = None  # Created in train() when we know total steps
+        self.scheduler: LRScheduler | None = None  # Created in train() when we know total steps
 
         # Mixed precision
         self.scaler = GradScaler() if config.use_mixed_precision else None
@@ -719,11 +719,11 @@ class CrossModalAlignmentModel(nn.Module):
 
     def encode_modality(self, content: Any, modality_type: str) -> torch.Tensor:
         """Encode content using the appropriate encoder."""
-        encoder = self.encoders.get(modality_type)
-        if encoder is None:
+        if modality_type not in self.encoders:
             raise ValueError(f"Unknown modality type: {modality_type}")
 
-        embedding = encoder(content)
+        encoder = self.encoders[modality_type]
+        embedding = cast(torch.Tensor, encoder(content))
         return embedding
 
     def forward(self, batch) -> tuple[torch.Tensor, torch.Tensor]:
@@ -736,22 +736,22 @@ class CrossModalAlignmentModel(nn.Module):
         # to handle different modality types appropriately
 
         # Encode modality A
-        embeddings_a = []
+        embeddings_a_list: list[torch.Tensor] = []
         for content, mod_type in zip(
             batch.modality_a_contents, batch.modality_a_types, strict=False
         ):
             emb = self.encode_modality(content, mod_type)
-            embeddings_a.append(emb)
-        embeddings_a = torch.stack(embeddings_a)
+            embeddings_a_list.append(emb)
+        embeddings_a = torch.stack(embeddings_a_list)
 
         # Encode modality B
-        embeddings_b = []
+        embeddings_b_list: list[torch.Tensor] = []
         for content, mod_type in zip(
             batch.modality_b_contents, batch.modality_b_types, strict=False
         ):
             emb = self.encode_modality(content, mod_type)
-            embeddings_b.append(emb)
-        embeddings_b = torch.stack(embeddings_b)
+            embeddings_b_list.append(emb)
+        embeddings_b = torch.stack(embeddings_b_list)
 
         # Project to shared space
         proj_a = self.projector(embeddings_a, batch.modality_a_types[0])

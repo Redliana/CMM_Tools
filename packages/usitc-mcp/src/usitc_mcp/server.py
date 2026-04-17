@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from mcp.server.fastmcp import FastMCP
 
 from .client import USITCAPIError, USITCClient
@@ -97,7 +99,6 @@ async def get_trade_data(
     flow: str = "import",
     data_type: str = "general_imports",
     country_codes: list[str] | None = None,
-    aggregate_by: str = "year",
 ) -> dict:
     """Fetch US import or export data by HTS code, partner, and year.
 
@@ -108,7 +109,6 @@ async def get_trade_data(
         data_type: "general_imports" | "imports_for_consumption" |
                    "domestic_exports" | "total_exports".
         country_codes: Optional list of partner codes; omit for all partners.
-        aggregate_by: "year" | "month" | "quarter".
 
     Returns:
         Dict with query and list of TradeRecord.
@@ -121,7 +121,6 @@ async def get_trade_data(
             flow=flow,
             data_type=data_type,
             country_codes=country_codes,
-            aggregate_by=aggregate_by,
         )
     except USITCAPIError as e:
         return {"error": str(e)}
@@ -132,7 +131,6 @@ async def get_trade_data(
             "flow": flow,
             "data_type": data_type,
             "country_codes": country_codes,
-            "aggregate_by": aggregate_by,
         },
         "count": len(records),
         "records": [r.model_dump() for r in records],
@@ -195,23 +193,27 @@ async def compare_import_types(
         country_codes: Optional partner filter.
     """
     client = get_client()
-    result: dict[str, list[dict]] = {}
+    data_types = ("general_imports", "imports_for_consumption")
     try:
-        for dt in ("general_imports", "imports_for_consumption"):
-            records = await client.get_trade_data(
-                hts_codes=hts_codes,
-                years=years,
-                flow="import",
-                data_type=dt,
-                country_codes=country_codes,
+        responses = await asyncio.gather(
+            *(
+                client.get_trade_data(
+                    hts_codes=hts_codes,
+                    years=years,
+                    flow="import",
+                    data_type=dt,
+                    country_codes=country_codes,
+                )
+                for dt in data_types
             )
-            result[dt] = [r.model_dump() for r in records]
+        )
     except USITCAPIError as e:
         return {"error": str(e)}
+    result = {dt: [r.model_dump() for r in recs] for dt, recs in zip(data_types, responses)}
     return {
         "query": {"hts_codes": hts_codes, "years": years, "country_codes": country_codes},
-        "general_imports_count": len(result.get("general_imports", [])),
-        "imports_for_consumption_count": len(result.get("imports_for_consumption", [])),
+        "general_imports_count": len(result["general_imports"]),
+        "imports_for_consumption_count": len(result["imports_for_consumption"]),
         "records": result,
     }
 

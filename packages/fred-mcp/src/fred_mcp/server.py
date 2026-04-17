@@ -165,29 +165,35 @@ async def get_cmm_dashboard(
         Dict keyed by series_id with latest observation, units, frequency, and timestamp.
     """
     client = get_client()
-    dashboard: dict[str, dict] = {}
     target_series = (
         {k: v for k, v in CMM_FRED_SERIES.items() if v["category"] == category}
         if category
         else CMM_FRED_SERIES
     )
 
-    for series_id, meta in target_series.items():
-        try:
-            await asyncio.sleep(0.1)
-            records = await client.get_observations(
-                series_id=series_id,
-                observation_start=observation_start,
-                observation_end=observation_end,
-                limit=5000,
-            )
+    # Rate-limit concurrent FRED calls; pairs obs + metadata fetches per series.
+    sem = asyncio.Semaphore(5)
+
+    async def fetch_one(series_id: str, meta: dict) -> tuple[str, dict]:
+        async with sem:
+            try:
+                records, metadata = await asyncio.gather(
+                    client.get_observations(
+                        series_id=series_id,
+                        observation_start=observation_start,
+                        observation_end=observation_end,
+                        limit=5000,
+                    ),
+                    client.get_series_metadata(series_id),
+                )
+            except (httpx.HTTPError, OSError, ValueError) as e:
+                return series_id, {"error": str(e), "title": meta["title"]}
             latest = None
             for r in reversed(records):
                 if r.value is not None:
                     latest = {"date": r.date, "value": r.value}
                     break
-            metadata = await client.get_series_metadata(series_id)
-            dashboard[series_id] = {
+            return series_id, {
                 "title": meta["title"],
                 "category": meta["category"],
                 "latest_observation": latest,
@@ -195,8 +201,9 @@ async def get_cmm_dashboard(
                 "frequency": metadata.frequency if metadata else None,
                 "observation_count": len(records),
             }
-        except (httpx.HTTPError, OSError, ValueError) as e:
-            dashboard[series_id] = {"error": str(e), "title": meta["title"]}
+
+    results = await asyncio.gather(*(fetch_one(sid, meta) for sid, meta in target_series.items()))
+    dashboard: dict[str, dict] = dict(results)
 
     return {
         "observation_start": observation_start,

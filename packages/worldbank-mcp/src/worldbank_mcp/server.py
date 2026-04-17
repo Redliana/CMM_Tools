@@ -163,21 +163,27 @@ async def get_cmm_profile(
         Country profile keyed by indicator, each with a list of (year, value) pairs.
     """
     client = get_client()
-    profile: dict[str, list[dict]] = {}
 
-    for indicator_code, indicator_name in CMM_WDI_INDICATORS.items():
-        try:
-            await asyncio.sleep(0.1)  # Gentle pacing
-            records = await client.get_indicator_observations(
-                country=country, indicator=indicator_code, date=date, per_page=100
-            )
-            profile[indicator_code] = [
+    sem = asyncio.Semaphore(5)
+
+    async def fetch_one(indicator_code: str, indicator_name: str) -> tuple[str, list[dict]]:
+        async with sem:
+            try:
+                records = await client.get_indicator_observations(
+                    country=country, indicator=indicator_code, date=date, per_page=100
+                )
+            except (httpx.HTTPError, OSError, ValueError):
+                return indicator_code, []
+            return indicator_code, [
                 {"year": r.year, "value": r.value, "name": indicator_name}
                 for r in records
                 if r.value is not None
             ]
-        except (httpx.HTTPError, OSError, ValueError):
-            profile[indicator_code] = []
+
+    results = await asyncio.gather(
+        *(fetch_one(code, name) for code, name in CMM_WDI_INDICATORS.items())
+    )
+    profile: dict[str, list[dict]] = dict(results)
 
     return {
         "country": country,

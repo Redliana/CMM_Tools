@@ -149,8 +149,6 @@ class USITCClient:
         except httpx.HTTPError as e:
             raise USITCAPIError(f"HTS search failed: {e}") from e
 
-    # ------------------------------------------------------------------ query
-
     @staticmethod
     def _build_saved_query(
         trade_type: str,
@@ -330,7 +328,6 @@ class USITCClient:
         flow: str = "import",
         data_type: str = "general_imports",
         country_codes: list[str] | None = None,
-        aggregate_by: str = "year",  # reserved; DataWeb currently runs annual
     ) -> list[TradeRecord]:
         """Fetch US trade data via ``/report2/runReport``.
 
@@ -342,16 +339,15 @@ class USITCClient:
                 ``domestic_exports`` | ``total_exports``.
             country_codes: USITC partner country ``value`` codes (see
                 ``country/getAllCountries``). ``None`` = aggregate all partners.
-            aggregate_by: reserved for future monthly/quarterly support.
 
         Returns:
             List of ``TradeRecord``.
 
-        TODO: commodity filtering via ``commoditySelectType='entered'`` is not
+        Note: commodity filtering via ``commoditySelectType='entered'`` is not
         yet reliably accepted by the server (it raises a "step 4" validation
-        error for reasons not yet pinned down). When that happens this method
-        re-submits the query with ``commoditySelectType='all'`` and lets the
-        caller filter client-side.
+        error whose companion-field requirements are not pinned down). When
+        that happens this method raises ``USITCAPIError`` and the caller must
+        drop the HTS filter and aggregate client-side.
         """
         trade_type = _TRADE_TYPE.get(flow.lower())
         if not trade_type:

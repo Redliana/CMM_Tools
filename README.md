@@ -11,6 +11,10 @@ initiative.
 | `bgs-mcp` | BGS World Mineral Statistics MCP server | MCP server |
 | `claimm-mcp` | NETL EDX CLaiMM critical minerals MCP server | MCP server |
 | `uncomtrade-mcp` | UN Comtrade international trade data MCP server | MCP server |
+| `usitc-mcp` | USITC DataWeb US import/export statistics MCP server (`USITC_API_TOKEN`) | MCP server |
+| `census-aes-mcp` | Census International Trade (AES-derived) MCP server (`CENSUS_API_KEY`) | MCP server |
+| `worldbank-mcp` | World Bank WDI indicators MCP server | MCP server |
+| `fred-mcp` | Federal Reserve Economic Data MCP server (`FRED_API_KEY`) | MCP server |
 | `osti-mcp` | OSTI DOE technical reports MCP server | MCP server |
 | `cmm-docs-mcp` | CMM document server (1,100+ PDFs, 500+ CSVs) | MCP server |
 | `arxiv-mcp` | ArXiv paper search MCP server | MCP server |
@@ -61,6 +65,10 @@ CMM_Tools/
 │   ├── bgs-mcp/
 │   ├── claimm-mcp/
 │   ├── uncomtrade-mcp/
+│   ├── usitc-mcp/
+│   ├── census-aes-mcp/
+│   ├── worldbank-mcp/
+│   ├── fred-mcp/
 │   ├── osti-mcp/
 │   ├── cmm-docs-mcp/
 │   ├── cmm-data/

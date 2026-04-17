@@ -78,6 +78,10 @@ known-first-party = [
     "scholar",
     "scholar_mcp",
     "cmm_embedding",
+    "worldbank_mcp",
+    "fred_mcp",
+    "usitc_mcp",
+    "census_aes_mcp",
 ]
 
 [tool.ruff.format]
